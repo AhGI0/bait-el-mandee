@@ -26,6 +26,7 @@
   --red:       #e04545;
   --blue:      #3474d4;
   --purple:    #7c5cbf;
+  --teal:      #0f9e8c;
   --text:      #1e2535;
   --muted:     #7a849a;
   --border:    #e4e8f0;
@@ -168,6 +169,8 @@ body {
 .btn-success:hover  { background: #1e8a58; }
 .btn-info     { background: var(--blue); color: #fff; }
 .btn-info:hover     { background: #2860b8; }
+.btn-teal     { background: var(--teal); color: #fff; }
+.btn-teal:hover     { background: #0a8070; }
 .btn-ghost    { background: #edf2f7; color: var(--text); }
 .btn-ghost:hover    { background: #e2e8f0; }
 .btn-sm  { padding: 6px 12px; font-size: 12.5px; }
@@ -325,11 +328,12 @@ body {
   opacity: .08;
   line-height: 1;
 }
-.stat-card.c-green { border-right-color: var(--green); }
-.stat-card.c-red   { border-right-color: var(--red); }
-.stat-card.c-gold  { border-right-color: var(--accent); }
-.stat-card.c-blue  { border-right-color: var(--blue); }
-.stat-card.c-purple{ border-right-color: var(--purple); }
+.stat-card.c-green  { border-right-color: var(--green); }
+.stat-card.c-red    { border-right-color: var(--red); }
+.stat-card.c-gold   { border-right-color: var(--accent); }
+.stat-card.c-blue   { border-right-color: var(--blue); }
+.stat-card.c-purple { border-right-color: var(--purple); }
+.stat-card.c-teal   { border-right-color: var(--teal); }
 .sc-label { font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
 .sc-value { font-size: 22px; font-weight: 800; }
 .sc-value.c-green  { color: var(--green); }
@@ -337,6 +341,7 @@ body {
 .sc-value.c-gold   { color: var(--accent); }
 .sc-value.c-blue   { color: var(--blue); }
 .sc-value.c-purple { color: var(--purple); }
+.sc-value.c-teal   { color: var(--teal); }
 .sc-sub   { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 
 /* ============================================================
@@ -444,6 +449,7 @@ tbody tr:hover { background: #f9fafb; }
 .b-blue   { background: #eef5ff; color: #2658a8; }
 .b-purple { background: #f3eeff; color: #5e3fa8; }
 .b-gray   { background: #f0f2f6; color: #5a6478; }
+.b-teal   { background: #e6faf8; color: #0a7060; }
 
 /* ============================================================
    MODAL
@@ -463,7 +469,7 @@ tbody tr:hover { background: #f9fafb; }
   background: var(--card);
   border-radius: 14px;
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
   max-height: 92vh;
   overflow-y: auto;
   box-shadow: 0 25px 70px rgba(0,0,0,.35);
@@ -573,6 +579,28 @@ tbody tr:hover { background: #f9fafb; }
 }
 
 /* ============================================================
+   SUPPLIER CARD (info box inside modal)
+   ============================================================ */
+.sup-info-box {
+  background: linear-gradient(135deg, #e6faf8 0%, #f0fffe 100%);
+  border: 1px solid #b2e8e2;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+.sup-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13.5px;
+  border-bottom: 1px solid #c9ede9;
+}
+.sup-info-row:last-child { border-bottom: none; }
+.sup-info-row span:first-child { color: var(--muted); font-weight: 600; }
+.sup-info-row span:last-child  { font-weight: 800; }
+
+/* ============================================================
    REPORT SUMMARY BLOCK
    ============================================================ */
 .report-summary {
@@ -592,6 +620,7 @@ tbody tr:hover { background: #f9fafb; }
 .rs-value.r { color: #ff7575; }
 .rs-value.a { color: var(--accent); }
 .rs-value.b { color: #7ab8ff; }
+.rs-value.t { color: #4addd0; }
 
 /* ============================================================
    UTILS
@@ -603,6 +632,7 @@ tbody tr:hover { background: #f9fafb; }
 .t-a { color: var(--accent); }
 .t-b { color: var(--blue); }
 .t-m { color: var(--muted); }
+.t-t { color: var(--teal); }
 .mt1 { margin-top: 6px; }
 .mt2 { margin-top: 12px; }
 .mt3 { margin-top: 20px; }
@@ -678,7 +708,10 @@ tbody tr:hover { background: #f9fafb; }
           <span class="ni">💸</span><span class="nl">المصروفات</span>
         </div>
 
-        <div class="nav-section-title">الموظفون</div>
+        <div class="nav-section-title">الموردون والموظفون</div>
+        <div class="nav-item" id="nav-suppliers" onclick="go('suppliers')">
+          <span class="ni">🏪</span><span class="nl">الموردون</span>
+        </div>
         <div class="nav-item" id="nav-loans" onclick="go('loans')">
           <span class="ni">🤝</span><span class="nl">السلف</span>
         </div>
@@ -818,6 +851,180 @@ tbody tr:hover { background: #f9fafb; }
             </div>
           </div>
         </div>
+
+        <!-- ── SUPPLIERS ── -->
+        <div id="sec-suppliers" class="section">
+
+          <!-- Stats row -->
+          <div class="stats-grid" id="supStats" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:20px;">
+            <div class="loading"><span class="spin">⟳</span></div>
+          </div>
+
+          <!-- Tabs -->
+          <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+            <button class="btn btn-teal btn-sm" id="supTab-list" onclick="switchSupTab('list')">🏪 قائمة الموردين</button>
+            <button class="btn btn-ghost btn-sm" id="supTab-invoices" onclick="switchSupTab('invoices')">🧾 فواتير الشراء</button>
+            <button class="btn btn-ghost btn-sm" id="supTab-payments" onclick="switchSupTab('payments')">💳 المدفوعات</button>
+          </div>
+
+          <!-- TAB: Supplier list -->
+          <div id="supTabContent-list">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title">🏪 الموردون</span>
+                <button class="btn btn-primary btn-sm" onclick="openSupModal()">＋ إضافة مورد</button>
+              </div>
+              <div class="card-body">
+                <div class="filters">
+                  <div class="filter-group">
+                    <label>بحث بالاسم</label>
+                    <input type="text" id="supSearch" placeholder="اسم المورد...">
+                  </div>
+                  <div class="filter-group">
+                    <label>الفئة</label>
+                    <select id="supCatFilter">
+                      <option value="">الكل</option>
+                      <option>لحوم ودواجن</option>
+                      <option>خضروات وفواكه</option>
+                      <option>بهارات وتوابل</option>
+                      <option>أرز وحبوب</option>
+                      <option>مشروبات</option>
+                      <option>مواد تنظيف</option>
+                      <option>عبوات وتغليف</option>
+                      <option>أخرى</option>
+                    </select>
+                  </div>
+                  <div class="filter-group" style="justify-content:flex-end">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-ghost btn-sm" onclick="loadSuppliers()">🔍 بحث</button>
+                  </div>
+                </div>
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>اسم المورد</th>
+                        <th>الفئة</th>
+                        <th>الهاتف</th>
+                        <th>إجمالي المشتريات</th>
+                        <th>المدفوع</th>
+                        <th>المستحق</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody id="supTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: Invoices -->
+          <div id="supTabContent-invoices" style="display:none;">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title">🧾 فواتير الشراء من الموردين</span>
+                <button class="btn btn-primary btn-sm" onclick="openInvModal()">＋ إضافة فاتورة</button>
+              </div>
+              <div class="card-body">
+                <div class="filters">
+                  <div class="filter-group">
+                    <label>المورد</label>
+                    <input type="text" id="invSupSearch" placeholder="اسم المورد...">
+                  </div>
+                  <div class="filter-group">
+                    <label>من تاريخ</label>
+                    <input type="date" id="invFrom">
+                  </div>
+                  <div class="filter-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="invTo">
+                  </div>
+                  <div class="filter-group">
+                    <label>الحالة</label>
+                    <select id="invStatus">
+                      <option value="">الكل</option>
+                      <option value="unpaid">غير مدفوعة</option>
+                      <option value="partial">جزئي</option>
+                      <option value="paid">مدفوعة</option>
+                    </select>
+                  </div>
+                  <div class="filter-group" style="justify-content:flex-end">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-ghost btn-sm" onclick="loadInvoices()">🔍 بحث</button>
+                  </div>
+                </div>
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>رقم الفاتورة</th>
+                        <th>المورد</th>
+                        <th>التاريخ</th>
+                        <th>المبلغ الكلي</th>
+                        <th>المدفوع</th>
+                        <th>المستحق</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody id="invTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: Payments -->
+          <div id="supTabContent-payments" style="display:none;">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title">💳 مدفوعات الموردين</span>
+                <button class="btn btn-primary btn-sm" onclick="openSupPayModal()">＋ تسجيل دفعة</button>
+              </div>
+              <div class="card-body">
+                <div class="filters">
+                  <div class="filter-group">
+                    <label>المورد</label>
+                    <input type="text" id="paySupSearch" placeholder="اسم المورد...">
+                  </div>
+                  <div class="filter-group">
+                    <label>من تاريخ</label>
+                    <input type="date" id="payFrom">
+                  </div>
+                  <div class="filter-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" id="payTo">
+                  </div>
+                  <div class="filter-group" style="justify-content:flex-end">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-ghost btn-sm" onclick="loadSupPayments()">🔍 بحث</button>
+                  </div>
+                </div>
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>التاريخ</th>
+                        <th>المورد</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>الملاحظات</th>
+                        <th>الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody id="payTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /sec-suppliers -->
 
         <!-- ── LOANS ── -->
         <div id="sec-loans" class="section">
@@ -968,9 +1175,7 @@ tbody tr:hover { background: #f9fafb; }
   </div><!-- /layout -->
 </div><!-- /appScreen -->
 
-<!-- ============================================================
-     MODAL
-     ============================================================ -->
+<!-- MODAL -->
 <div class="overlay" id="overlay" onclick="overlayClick(event)">
   <div class="modal" id="modal">
     <div class="modal-head">
@@ -995,12 +1200,12 @@ tbody tr:hover { background: #f9fafb; }
 'use strict';
 
 /* ─────────────────────────────────────────────────
-   ⚙  CONFIGURATION — Edit these before first use
+   ⚙  CONFIGURATION
    ───────────────────────────────────────────────── */
 const CONFIG = {
-  supabaseUrl:  'https://cktegsqvurvsojxdtloh.supabase.co',        // ← ضع رابط Supabase
-  supabaseKey:  'sb_publishable_wAUWL8oKZp2uH5NzlprqVA_flapV_Yw',   // ← ضع المفتاح العام
-  adminPass:    '2001',                  // ← غيّر كلمة المرور
+  supabaseUrl:  'https://cktegsqvurvsojxdtloh.supabase.co',
+  supabaseKey:  'sb_publishable_wAUWL8oKZp2uH5NzlprqVA_flapV_Yw',
+  adminPass:    '2001',
 };
 
 /* ─────────────────────────────────────────────────
@@ -1011,15 +1216,16 @@ let db;
 try {
   db = createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 } catch(e) {
-  console.warn('Supabase init failed — using demo mode');
+  console.warn('Supabase init failed');
 }
 
 /* ─────────────────────────────────────────────────
    STATE
    ───────────────────────────────────────────────── */
-let currentSection = 'dashboard';
-let modalCallback  = null;
-let reportCache    = null;
+let currentSection  = 'dashboard';
+let modalCallback   = null;
+let reportCache     = null;
+let currentSupTab   = 'list';
 
 /* ─────────────────────────────────────────────────
    UTILITIES
@@ -1030,7 +1236,6 @@ const today = () => new Date().toISOString().split('T')[0];
 const monthStart = () => { const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().split('T')[0]; };
 const escQ = s => (s||'').replace(/'/g,"\\'");
 
-/* toast notifications */
 function toast(msg, type='success') {
   const el  = document.getElementById('toast');
   const ico = document.getElementById('toastIcon');
@@ -1041,8 +1246,6 @@ function toast(msg, type='success') {
   txt.textContent = msg;
   setTimeout(()=>el.classList.remove('show'), 3200);
 }
-
-/* confirm dialog (uses native for simplicity) */
 const ask = (msg) => confirm(msg);
 
 /* ─────────────────────────────────────────────────
@@ -1075,7 +1278,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
 });
 
 function initApp() {
-  // topbar date
   document.getElementById('tbDate').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   go('dashboard');
 }
@@ -1087,6 +1289,7 @@ const secTitles = {
   dashboard: 'لوحة التحكم',
   revenue:   'الإيرادات',
   expenses:  'المصروفات',
+  suppliers: 'الموردون',
   loans:     'سلف الموظفين',
   discounts: 'الخصومات',
   reports:   'التقارير',
@@ -1095,6 +1298,7 @@ const secLoaders = {
   dashboard: loadDashboard,
   revenue:   loadRevenue,
   expenses:  loadExpenses,
+  suppliers: loadSuppliersSection,
   loans:     loadLoans,
   discounts: loadDiscounts,
   reports:   ()=>{},
@@ -1102,16 +1306,12 @@ const secLoaders = {
 
 function go(sec) {
   currentSection = sec;
-  // nav highlight
   document.querySelectorAll('.nav-item').forEach(el=>{
     el.classList.toggle('active', el.id==='nav-'+sec);
   });
-  // section switch
   document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
-  // title
   document.getElementById('tbTitle').textContent = secTitles[sec]||sec;
-  // load
   if(secLoaders[sec]) secLoaders[sec]();
 }
 
@@ -1135,7 +1335,6 @@ function closeModal() {
 function overlayClick(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
 async function runModalCb() { if(modalCallback) await modalCallback(); }
 
-/* helper: validate required fields */
 function validateFields(ids) {
   for(const id of ids) {
     const el = document.getElementById(id);
@@ -1180,7 +1379,7 @@ async function loadDashboard() {
   try {
     const t  = today();
     const ms = monthStart();
-    const [revToday,expToday,revMonth,expMonth,loansAll,discMonth,revRecent,expRecent] = await Promise.all([
+    const [revToday,expToday,revMonth,expMonth,loansAll,discMonth,revRecent,expRecent,invAll] = await Promise.all([
       dbSelect('revenue',  {eq:{date:t}}),
       dbSelect('expenses', {eq:{date:t}}),
       dbSelect('revenue',  {gte:{date:ms}, lte:{date:t}}),
@@ -1189,6 +1388,7 @@ async function loadDashboard() {
       dbSelect('discounts',{gte:{date:ms}, lte:{date:t}}),
       dbSelect('revenue',  {limit:6}),
       dbSelect('expenses', {limit:6}),
+      dbSelect('supplier_invoices', {}),
     ]);
     const sum  = (arr,k='amount') => arr.reduce((s,r)=>s+Number(r[k]||0),0);
     const todayRev  = sum(revToday);
@@ -1199,6 +1399,7 @@ async function loadDashboard() {
     const mProfit   = mRev - mExp;
     const totalLoansPending = sum(loansAll.map(l=>({amount:Number(l.amount)-Number(l.paid_amount||0)})));
     const mDisc     = sum(discMonth);
+    const totalDueSuppliers = invAll.reduce((s,r)=>s+Math.max(0,Number(r.amount)-Number(r.paid_amount||0)),0);
 
     document.getElementById('dashStats').innerHTML = `
       <div class="stat-card c-green" data-icon="💰">
@@ -1235,6 +1436,11 @@ async function loadDashboard() {
         <div class="sc-label">سلف معلقة</div>
         <div class="sc-value c-gold">${fmt(totalLoansPending)}</div>
         <div class="sc-sub">إجمالي غير مسدد</div>
+      </div>
+      <div class="stat-card c-teal" data-icon="🏪">
+        <div class="sc-label">مستحق للموردين</div>
+        <div class="sc-value c-teal">${fmt(totalDueSuppliers)}</div>
+        <div class="sc-sub">فواتير غير مسددة</div>
       </div>
       <div class="stat-card c-purple" data-icon="🏷️">
         <div class="sc-label">خصومات الشهر</div>
@@ -1336,8 +1542,7 @@ function openRevModal(id,date,amount,notes) {
       try {
         isEdit ? await dbUpdate('revenue',id,payload) : await dbInsert('revenue',payload);
         toast(isEdit?'تم التحديث بنجاح':'تم الإضافة بنجاح');
-        closeModal();
-        loadRevenue();
+        closeModal(); loadRevenue();
       } catch(e){ toast('خطأ: '+e.message,'error'); }
     }
   );
@@ -1425,8 +1630,413 @@ async function delExp(id) {
   catch(e){ toast('خطأ: '+e.message,'error'); }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   🏪  SUPPLIERS  —  الموردون
+   ═══════════════════════════════════════════════════════════════ */
+
+const SUP_CATS = ['لحوم ودواجن','خضروات وفواكه','بهارات وتوابل','أرز وحبوب','مشروبات','مواد تنظيف','عبوات وتغليف','أخرى'];
+const SUP_CAT_BADGE = {
+  'لحوم ودواجن':'b-red','خضروات وفواكه':'b-green','بهارات وتوابل':'b-gold',
+  'أرز وحبوب':'b-gold','مشروبات':'b-blue','مواد تنظيف':'b-teal',
+  'عبوات وتغليف':'b-purple','أخرى':'b-gray'
+};
+function supCatBadge(cat){ return `<span class="badge ${SUP_CAT_BADGE[cat]||'b-gray'}">${cat||'—'}</span>`; }
+
+const PAY_METHODS = ['نقداً','تحويل بنكي','شيك','بطاقة','آجل'];
+
+/* Switch tabs inside suppliers section */
+function switchSupTab(tab) {
+  currentSupTab = tab;
+  ['list','invoices','payments'].forEach(t=>{
+    document.getElementById('supTabContent-'+t).style.display = t===tab?'block':'none';
+    const btn = document.getElementById('supTab-'+t);
+    if(btn){
+      btn.className = t===tab ? 'btn btn-teal btn-sm' : 'btn btn-ghost btn-sm';
+    }
+  });
+  if(tab==='list')     loadSuppliers();
+  if(tab==='invoices') loadInvoices();
+  if(tab==='payments') loadSupPayments();
+}
+
+async function loadSuppliersSection() {
+  await loadSupStats();
+  switchSupTab(currentSupTab);
+}
+
+/* ── Supplier Stats ── */
+async function loadSupStats() {
+  const el = document.getElementById('supStats');
+  el.innerHTML = '<div class="loading"><span class="spin">⟳</span></div>';
+  try {
+    const [suppliers, invoices, payments] = await Promise.all([
+      dbSelect('suppliers', {order:'name'}),
+      dbSelect('supplier_invoices', {}),
+      dbSelect('supplier_payments', {}),
+    ]);
+    const totalInv  = invoices.reduce((s,r)=>s+Number(r.amount||0),0);
+    const totalPaid = invoices.reduce((s,r)=>s+Number(r.paid_amount||0),0);
+    const totalDue  = totalInv - totalPaid;
+    const overdueCount = invoices.filter(i=>{
+      const rem = Number(i.amount)-Number(i.paid_amount||0);
+      return rem>0 && i.due_date && i.due_date < today();
+    }).length;
+
+    el.innerHTML = `
+      <div class="stat-card c-teal" data-icon="🏪">
+        <div class="sc-label">عدد الموردين</div>
+        <div class="sc-value c-teal">${suppliers.length}</div>
+        <div class="sc-sub">مورد نشط</div>
+      </div>
+      <div class="stat-card c-blue" data-icon="🧾">
+        <div class="sc-label">إجمالي الفواتير</div>
+        <div class="sc-value c-blue">${fmt(totalInv)}</div>
+        <div class="sc-sub">${invoices.length} فاتورة</div>
+      </div>
+      <div class="stat-card c-green" data-icon="💳">
+        <div class="sc-label">إجمالي المدفوع</div>
+        <div class="sc-value c-green">${fmt(totalPaid)}</div>
+        <div class="sc-sub">ريال سعودي</div>
+      </div>
+      <div class="stat-card c-red" data-icon="⏳">
+        <div class="sc-label">المستحق للموردين</div>
+        <div class="sc-value c-red">${fmt(totalDue)}</div>
+        <div class="sc-sub">${overdueCount>0?`<span style="color:var(--red)">⚠️ ${overdueCount} متأخرة</span>`:'لا يوجد متأخرات'}</div>
+      </div>
+    `;
+  } catch(err){
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1"><p>⚠️ ${err.message}</p></div>`;
+  }
+}
+
+/* ── Supplier List ── */
+async function loadSuppliers() {
+  const tbody = document.getElementById('supTbody');
+  tbody.innerHTML = '<tr><td colspan="9"><div class="loading"><span class="spin">⟳</span></div></td></tr>';
+  try {
+    const q = {};
+    const search = document.getElementById('supSearch').value.trim();
+    const cat    = document.getElementById('supCatFilter').value;
+    if(search) q.ilike = {name:`%${search}%`};
+    if(cat)    q.eq    = {category:cat};
+
+    const [suppliers, invoices] = await Promise.all([
+      dbSelect('suppliers', {...q, order:'name'}),
+      dbSelect('supplier_invoices', {}),
+    ]);
+
+    // compute totals per supplier
+    const supMap = {};
+    invoices.forEach(inv=>{
+      if(!supMap[inv.supplier_id]) supMap[inv.supplier_id]={total:0,paid:0};
+      supMap[inv.supplier_id].total += Number(inv.amount||0);
+      supMap[inv.supplier_id].paid  += Number(inv.paid_amount||0);
+    });
+
+    if(suppliers.length===0){
+      tbody.innerHTML='<tr><td colspan="9">'+emptyRow('🏪','لا يوجد موردون')+'</td></tr>'; return;
+    }
+
+    tbody.innerHTML = suppliers.map((s,i)=>{
+      const info = supMap[s.id]||{total:0,paid:0};
+      const due  = info.total - info.paid;
+      const stClass = due<=0 ? 'b-green' : (info.paid>0 ? 'b-gold' : 'b-red');
+      const stLabel = due<=0 ? 'مسدد' : (info.paid>0 ? 'جزئي' : 'مستحق');
+      return `<tr>
+        <td class="t-m">${i+1}</td>
+        <td class="fw7">${s.name}</td>
+        <td>${supCatBadge(s.category)}</td>
+        <td class="t-m">${s.phone||'—'}</td>
+        <td class="t-b fw7">${fmt(info.total)} ر.س</td>
+        <td class="t-g fw7">${fmt(info.paid)} ر.س</td>
+        <td class="${due<=0?'t-g':'t-r'} fw7">${fmt(due)} ر.س</td>
+        <td><span class="badge ${stClass}">${stLabel}</span></td>
+        <td>
+          <div class="act-cell">
+            <button class="btn btn-teal btn-xs" title="إضافة فاتورة" onclick="openInvModal(null,null,'${escQ(s.name)}','${s.id}')">🧾</button>
+            <button class="btn btn-ghost btn-xs" onclick="editSup('${s.id}','${escQ(s.name)}','${escQ(s.category||'')}','${escQ(s.phone||'')}','${escQ(s.address||'')}','${escQ(s.notes||'')}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="delSup('${s.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(err){ tbody.innerHTML='<tr><td colspan="9">'+errRow(err)+'</td></tr>'; }
+}
+
+/* open Add/Edit Supplier modal */
+function openSupModal(id,name,cat,phone,address,notes) {
+  const isEdit = !!id;
+  const opts = SUP_CATS.map(c=>`<option value="${c}" ${c===(cat||'')?'selected':''}>${c}</option>`).join('');
+  openModal(
+    isEdit ? 'تعديل بيانات المورد' : 'إضافة مورد جديد',
+    `<div class="fg"><label>اسم المورد *</label><input type="text" id="f_name" value="${name||''}" placeholder="اسم الشركة أو المورد"></div>
+     <div class="fg"><label>الفئة *</label><select id="f_cat"><option value="">-- اختر --</option>${opts}</select></div>
+     <div class="fg"><label>رقم الهاتف</label><input type="text" id="f_phone" value="${phone||''}" placeholder="05xxxxxxxx"></div>
+     <div class="fg"><label>العنوان</label><input type="text" id="f_address" value="${address||''}" placeholder="العنوان / المنطقة"></div>
+     <div class="fg"><label>ملاحظات</label><textarea id="f_notes">${notes||''}</textarea></div>`,
+    isEdit ? 'تحديث' : 'إضافة',
+    async () => {
+      if(!validateFields(['f_name','f_cat'])) return;
+      const payload = {
+        name:    document.getElementById('f_name').value.trim(),
+        category:document.getElementById('f_cat').value,
+        phone:   document.getElementById('f_phone').value.trim(),
+        address: document.getElementById('f_address').value.trim(),
+        notes:   document.getElementById('f_notes').value.trim(),
+      };
+      try {
+        isEdit ? await dbUpdate('suppliers',id,payload) : await dbInsert('suppliers',payload);
+        toast(isEdit?'تم تحديث المورد':'تم إضافة المورد بنجاح');
+        closeModal(); loadSuppliers(); loadSupStats();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+const editSup = openSupModal;
+async function delSup(id) {
+  if(!ask('هل أنت متأكد من حذف هذا المورد؟ ستُحذف جميع فواتيره أيضاً.')) return;
+  try { await dbDelete('suppliers',id); toast('تم الحذف'); loadSuppliers(); loadSupStats(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+/* ── Invoices ── */
+async function loadInvoices() {
+  const tbody = document.getElementById('invTbody');
+  tbody.innerHTML = '<tr><td colspan="9"><div class="loading"><span class="spin">⟳</span></div></td></tr>';
+  try {
+    const q = {};
+    const search = document.getElementById('invSupSearch').value.trim();
+    const from   = document.getElementById('invFrom').value;
+    const to     = document.getElementById('invTo').value;
+    if(search) q.ilike = {supplier_name:`%${search}%`};
+    if(from)   q.gte   = {date:from};
+    if(to)     q.lte   = {date:to};
+
+    let data = await dbSelect('supplier_invoices', q);
+
+    // status filter (client side)
+    const statusF = document.getElementById('invStatus').value;
+    if(statusF) {
+      data = data.filter(inv=>{
+        const rem = Number(inv.amount)-Number(inv.paid_amount||0);
+        if(statusF==='paid')    return rem<=0;
+        if(statusF==='partial') return rem>0 && Number(inv.paid_amount||0)>0;
+        if(statusF==='unpaid')  return Number(inv.paid_amount||0)===0 && rem>0;
+        return true;
+      });
+    }
+
+    if(data.length===0){ tbody.innerHTML='<tr><td colspan="9">'+emptyRow('🧾','لا توجد فواتير')+'</td></tr>'; return; }
+    const tAmt  = data.reduce((s,r)=>s+Number(r.amount),0);
+    const tPaid = data.reduce((s,r)=>s+Number(r.paid_amount||0),0);
+    const tRem  = tAmt - tPaid;
+
+    tbody.innerHTML = data.map((inv,i)=>{
+      const rem  = Number(inv.amount)-Number(inv.paid_amount||0);
+      const pct  = inv.amount>0 ? (Number(inv.paid_amount||0)/Number(inv.amount)*100).toFixed(0) : 0;
+      const stClass = rem<=0 ? 'b-green' : (Number(inv.paid_amount||0)>0 ? 'b-gold' : 'b-red');
+      const stLabel = rem<=0 ? 'مدفوعة' : (Number(inv.paid_amount||0)>0 ? 'جزئي' : 'غير مدفوعة');
+      const isOverdue = rem>0 && inv.due_date && inv.due_date < today();
+      return `<tr${isOverdue?' style="background:#fff8f8"':''}>
+        <td class="t-m">${i+1}</td>
+        <td class="fw7 t-t">${inv.invoice_number||'—'}</td>
+        <td class="fw7">${inv.supplier_name||'—'}</td>
+        <td>${fmtD(inv.date)}${isOverdue?` <span style="color:var(--red);font-size:11px">⚠️ متأخرة</span>`:''}</td>
+        <td class="t-b fw7">${fmt(inv.amount)} ر.س</td>
+        <td class="t-g fw7">${fmt(inv.paid_amount||0)} ر.س</td>
+        <td>
+          <div class="loan-status">
+            <div class="ls-row"><span class="fw7 ${rem<=0?'t-g':'t-r'}">${fmt(rem)} ر.س</span><span>${pct}%</span></div>
+            <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${rem<=0?'var(--green)':'var(--red)'}"></div></div>
+          </div>
+        </td>
+        <td><span class="badge ${stClass}">${stLabel}</span></td>
+        <td>
+          <div class="act-cell">
+            ${rem>0?`<button class="btn btn-success btn-xs" title="تسجيل دفعة" onclick="openInvPayModal('${inv.id}','${escQ(inv.supplier_name)}',${inv.amount},${inv.paid_amount||0})">💳</button>`:''}
+            <button class="btn btn-ghost btn-xs" onclick="editInv('${inv.id}','${inv.date}','${escQ(inv.supplier_name||'')}','${escQ(inv.supplier_id||'')}','${escQ(inv.invoice_number||'')}',${inv.amount},${inv.paid_amount||0},'${inv.due_date||''}','${escQ(inv.notes||'')}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="delInv('${inv.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('') +
+    `<tr class="tfoot"><td colspan="4" class="fw8">الإجمالي</td><td class="t-b fw8">${fmt(tAmt)} ر.س</td><td class="t-g fw8">${fmt(tPaid)} ر.س</td><td class="t-r fw8">${fmt(tRem)} ر.س</td><td colspan="2"></td></tr>`;
+  } catch(err){ tbody.innerHTML='<tr><td colspan="9">'+errRow(err)+'</td></tr>'; }
+}
+
+/* Add/Edit Invoice modal */
+async function openInvModal(id,date,supName,supId,invNum,amount,paid,dueDate,notes) {
+  const isEdit = !!id;
+  // load suppliers for dropdown
+  let supOpts = '';
+  try {
+    const sups = await dbSelect('suppliers',{order:'name'});
+    supOpts = sups.map(s=>`<option value="${s.id}" data-name="${escQ(s.name)}" ${s.id===supId?'selected':''}>${s.name}</option>`).join('');
+  } catch(e){ supOpts='<option>خطأ في التحميل</option>'; }
+
+  openModal(
+    isEdit ? 'تعديل فاتورة' : 'إضافة فاتورة شراء',
+    `<div class="fg"><label>المورد *</label>
+       <select id="f_sup_id" onchange="document.getElementById('f_sup_name').value=this.options[this.selectedIndex].dataset.name">
+         <option value="">-- اختر مورداً --</option>${supOpts}
+       </select>
+     </div>
+     <input type="hidden" id="f_sup_name" value="${supName||''}">
+     <div class="fg"><label>رقم الفاتورة</label><input type="text" id="f_inv_num" value="${invNum||''}" placeholder="INV-001"></div>
+     <div class="fg"><label>تاريخ الفاتورة *</label><input type="date" id="f_date" value="${date||today()}"></div>
+     <div class="fg"><label>تاريخ الاستحقاق</label><input type="date" id="f_due" value="${dueDate||''}"></div>
+     <div class="fg"><label>المبلغ الكلي (ريال) *</label><input type="number" id="f_amount" value="${amount||''}" placeholder="0.00" min="0" step="0.01"></div>
+     ${isEdit?`<div class="fg"><label>المبلغ المدفوع (ريال)</label><input type="number" id="f_paid" value="${paid||0}" min="0" step="0.01"></div>`:''}
+     <div class="fg"><label>ملاحظات</label><textarea id="f_notes">${notes||''}</textarea></div>`,
+    isEdit ? 'تحديث' : 'إضافة',
+    async () => {
+      if(!validateFields(['f_sup_id','f_date','f_amount'])) return;
+      const selEl = document.getElementById('f_sup_id');
+      const snName = selEl.options[selEl.selectedIndex]?.dataset?.name || document.getElementById('f_sup_name').value;
+      const payload = {
+        supplier_id:     selEl.value,
+        supplier_name:   snName,
+        invoice_number:  document.getElementById('f_inv_num').value.trim(),
+        date:            document.getElementById('f_date').value,
+        due_date:        document.getElementById('f_due').value || null,
+        amount:          parseFloat(document.getElementById('f_amount').value),
+        paid_amount:     parseFloat(document.getElementById('f_paid')?.value||0),
+        notes:           document.getElementById('f_notes').value.trim(),
+      };
+      if(!isEdit) payload.paid_amount = 0;
+      try {
+        isEdit ? await dbUpdate('supplier_invoices',id,payload) : await dbInsert('supplier_invoices',payload);
+        toast(isEdit?'تم التحديث':'تم إضافة الفاتورة');
+        closeModal(); loadInvoices(); loadSupStats();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+const editInv = openInvModal;
+async function delInv(id) {
+  if(!ask('هل أنت متأكد من حذف هذه الفاتورة؟')) return;
+  try { await dbDelete('supplier_invoices',id); toast('تم الحذف'); loadInvoices(); loadSupStats(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+/* Pay invoice */
+function openInvPayModal(invId, supName, totalAmt, paidAmt) {
+  const rem = Number(totalAmt) - Number(paidAmt);
+  const methOpts = PAY_METHODS.map(m=>`<option>${m}</option>`).join('');
+  openModal(
+    `سداد فاتورة — ${supName}`,
+    `<div class="sup-info-box">
+       <div class="sup-info-row"><span>المبلغ الكلي:</span><span class="t-b">${fmt(totalAmt)} ر.س</span></div>
+       <div class="sup-info-row"><span>المدفوع:</span><span class="t-g">${fmt(paidAmt)} ر.س</span></div>
+       <div class="sup-info-row"><span>المتبقي:</span><span class="t-r">${fmt(rem)} ر.س</span></div>
+     </div>
+     <div class="fg"><label>مبلغ الدفعة (ريال) *</label><input type="number" id="f_pay" placeholder="0.00" max="${rem}" min="0.01" step="0.01"></div>
+     <div class="fg"><label>طريقة الدفع</label><select id="f_method">${methOpts}</select></div>
+     <div class="fg"><label>تاريخ الدفع</label><input type="date" id="f_pay_date" value="${today()}"></div>
+     <div class="fg"><label>ملاحظات</label><textarea id="f_pay_notes" style="min-height:60px"></textarea></div>`,
+    'تأكيد الدفع',
+    async () => {
+      const pay = parseFloat(document.getElementById('f_pay').value||0);
+      if(!pay||pay<=0){ toast('أدخل مبلغاً صحيحاً','error'); return; }
+      if(pay>rem+0.01){ toast('المبلغ أكبر من المتبقي','error'); return; }
+      try {
+        const newPaid = Number(paidAmt)+pay;
+        await dbUpdate('supplier_invoices', invId, {paid_amount: newPaid});
+        // also log payment record
+        await dbInsert('supplier_payments', {
+          invoice_id:    invId,
+          supplier_name: supName,
+          amount:        pay,
+          date:          document.getElementById('f_pay_date').value,
+          method:        document.getElementById('f_method').value,
+          notes:         document.getElementById('f_pay_notes').value,
+        });
+        toast('تم تسجيل الدفعة بنجاح');
+        closeModal(); loadInvoices(); loadSupStats();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+
+/* ── Supplier Payments list ── */
+async function loadSupPayments() {
+  const tbody = document.getElementById('payTbody');
+  tbody.innerHTML = '<tr><td colspan="7"><div class="loading"><span class="spin">⟳</span></div></td></tr>';
+  try {
+    const q = {};
+    const search = document.getElementById('paySupSearch').value.trim();
+    const from   = document.getElementById('payFrom').value;
+    const to     = document.getElementById('payTo').value;
+    if(search) q.ilike = {supplier_name:`%${search}%`};
+    if(from)   q.gte   = {date:from};
+    if(to)     q.lte   = {date:to};
+    const data = await dbSelect('supplier_payments', q);
+    if(data.length===0){ tbody.innerHTML='<tr><td colspan="7">'+emptyRow('💳','لا توجد مدفوعات مسجلة')+'</td></tr>'; return; }
+    const total = data.reduce((s,r)=>s+Number(r.amount),0);
+    tbody.innerHTML = data.map((p,i)=>`
+      <tr>
+        <td class="t-m">${i+1}</td>
+        <td>${fmtD(p.date)}</td>
+        <td class="fw7">${p.supplier_name||'—'}</td>
+        <td class="t-g fw7">${fmt(p.amount)} ر.س</td>
+        <td><span class="badge b-teal">${p.method||'—'}</span></td>
+        <td class="t-m" style="font-size:12.5px">${p.notes||'—'}</td>
+        <td>
+          <div class="act-cell">
+            <button class="btn btn-danger btn-xs" onclick="delSupPay('${p.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('') +
+      `<tr class="tfoot"><td colspan="3" class="fw8">الإجمالي</td><td class="t-g fw8">${fmt(total)} ر.س</td><td colspan="3"></td></tr>`;
+  } catch(err){ tbody.innerHTML='<tr><td colspan="7">'+errRow(err)+'</td></tr>'; }
+}
+
+/* Add standalone payment (not tied to specific invoice) */
+async function openSupPayModal() {
+  let supOpts = '';
+  try {
+    const sups = await dbSelect('suppliers',{order:'name'});
+    supOpts = sups.map(s=>`<option value="${s.id}" data-name="${escQ(s.name)}">${s.name}</option>`).join('');
+  } catch(e){ supOpts='<option>خطأ</option>'; }
+  const methOpts = PAY_METHODS.map(m=>`<option>${m}</option>`).join('');
+  openModal(
+    'تسجيل دفعة لمورد',
+    `<div class="fg"><label>المورد *</label>
+       <select id="f_sup_id"><option value="">-- اختر --</option>${supOpts}</select>
+     </div>
+     <div class="fg"><label>المبلغ (ريال) *</label><input type="number" id="f_amount" placeholder="0.00" min="0.01" step="0.01"></div>
+     <div class="fg"><label>طريقة الدفع</label><select id="f_method">${methOpts}</select></div>
+     <div class="fg"><label>تاريخ الدفع *</label><input type="date" id="f_date" value="${today()}"></div>
+     <div class="fg"><label>ملاحظات</label><textarea id="f_notes" style="min-height:60px"></textarea></div>`,
+    'تسجيل',
+    async () => {
+      if(!validateFields(['f_sup_id','f_amount','f_date'])) return;
+      const selEl = document.getElementById('f_sup_id');
+      const sName = selEl.options[selEl.selectedIndex]?.dataset?.name||'';
+      try {
+        await dbInsert('supplier_payments',{
+          invoice_id:    null,
+          supplier_name: sName,
+          amount:        parseFloat(document.getElementById('f_amount').value),
+          date:          document.getElementById('f_date').value,
+          method:        document.getElementById('f_method').value,
+          notes:         document.getElementById('f_notes').value.trim(),
+        });
+        toast('تم تسجيل الدفعة');
+        closeModal(); loadSupPayments(); loadSupStats();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+
+async function delSupPay(id) {
+  if(!ask('هل أنت متأكد من حذف هذه الدفعة؟')) return;
+  try { await dbDelete('supplier_payments',id); toast('تم الحذف'); loadSupPayments(); loadSupStats(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
 /* ─────────────────────────────────────────────────
-   LOANS  (السلف)
+   LOANS
    ───────────────────────────────────────────────── */
 function loanStatus(amount, paid) {
   const rem = Number(amount) - Number(paid||0);
@@ -1447,8 +2057,6 @@ async function loadLoans() {
     if(from)   q.gte   = {date:from};
     if(to)     q.lte   = {date:to};
     let data = await dbSelect('loans', q);
-
-    // client-side status filter
     const statusF = document.getElementById('loanStatus').value;
     if(statusF) {
       data = data.filter(l=>{
@@ -1459,7 +2067,6 @@ async function loadLoans() {
         return true;
       });
     }
-
     if(data.length===0){ tbody.innerHTML='<tr><td colspan="8">'+emptyRow('🤝','لا توجد سلف')+'</td></tr>'; return; }
     const tAmt  = data.reduce((s,r)=>s+Number(r.amount),0);
     const tPaid = data.reduce((s,r)=>s+Number(r.paid_amount||0),0);
@@ -1555,7 +2162,7 @@ async function delLoan(id) {
 }
 
 /* ─────────────────────────────────────────────────
-   DISCOUNTS  (الخصومات)
+   DISCOUNTS
    ───────────────────────────────────────────────── */
 async function loadDiscounts() {
   const tbody = document.getElementById('discTbody');
@@ -1649,22 +2256,26 @@ async function loadReports() {
   cont.innerHTML = '<div class="loading"><span class="spin">⟳</span> جاري إنشاء التقرير...</div>';
   try {
     const q = {gte:{date:from}, lte:{date:to}};
-    const [revenue,expenses,loans,discounts] = await Promise.all([
+    const [revenue,expenses,loans,discounts,invoices,payments] = await Promise.all([
       dbSelect('revenue',  q),
       dbSelect('expenses', q),
       dbSelect('loans',    q),
       dbSelect('discounts',q),
+      dbSelect('supplier_invoices', q),
+      dbSelect('supplier_payments', q),
     ]);
-    reportCache = {revenue,expenses,loans,discounts,from,to};
+    reportCache = {revenue,expenses,loans,discounts,invoices,payments,from,to};
 
     const tRev   = revenue.reduce((s,r)=>s+Number(r.amount),0);
     const tExp   = expenses.reduce((s,r)=>s+Number(r.amount),0);
     const tLoan  = loans.reduce((s,r)=>s+Number(r.amount),0);
     const tLRem  = loans.reduce((s,r)=>s+Number(r.amount)-Number(r.paid_amount||0),0);
     const tDisc  = discounts.reduce((s,r)=>s+Number(r.amount),0);
+    const tInv   = invoices.reduce((s,r)=>s+Number(r.amount),0);
+    const tInvDue= invoices.reduce((s,r)=>s+Math.max(0,Number(r.amount)-Number(r.paid_amount||0)),0);
+    const tPay   = payments.reduce((s,r)=>s+Number(r.amount),0);
     const profit = tRev - tExp;
 
-    // expenses by category
     const byCat = {};
     expenses.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount); });
 
@@ -1673,6 +2284,8 @@ async function loadReports() {
         <div class="rs-item"><div class="rs-label">إجمالي الإيرادات</div><div class="rs-value g">${fmt(tRev)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${revenue.length} سجل</div></div>
         <div class="rs-item"><div class="rs-label">إجمالي المصروفات</div><div class="rs-value r">${fmt(tExp)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${expenses.length} سجل</div></div>
         <div class="rs-item"><div class="rs-label">صافي الربح</div><div class="rs-value ${profit>=0?'g':'r'}">${fmt(profit)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${profit>=0?'▲ ربح':'▼ خسارة'}</div></div>
+        <div class="rs-item"><div class="rs-label">فواتير الموردين</div><div class="rs-value t">${fmt(tInv)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">مستحق: ${fmt(tInvDue)}</div></div>
+        <div class="rs-item"><div class="rs-label">مدفوعات للموردين</div><div class="rs-value g">${fmt(tPay)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${payments.length} دفعة</div></div>
         <div class="rs-item"><div class="rs-label">إجمالي السلف</div><div class="rs-value a">${fmt(tLoan)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">متبقي: ${fmt(tLRem)}</div></div>
         <div class="rs-item"><div class="rs-label">إجمالي الخصومات</div><div class="rs-value b">${fmt(tDisc)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${discounts.length} خصم</div></div>
       </div>
@@ -1699,6 +2312,22 @@ async function loadReports() {
         </div>
       </div>
       `:''}
+
+      ${invoices.length>0?`
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><span class="card-title">🏪 فواتير الموردين في هذه الفترة</span></div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>#</th><th>المورد</th><th>التاريخ</th><th>المبلغ</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+            <tbody>${invoices.map((inv,i)=>{
+              const rem=Number(inv.amount)-Number(inv.paid_amount||0);
+              const stC=rem<=0?'b-green':(Number(inv.paid_amount||0)>0?'b-gold':'b-red');
+              const stL=rem<=0?'مدفوعة':(Number(inv.paid_amount||0)>0?'جزئي':'غير مدفوعة');
+              return `<tr><td class="t-m">${i+1}</td><td class="fw7">${inv.supplier_name||'—'}</td><td>${fmtD(inv.date)}</td><td class="t-b fw7">${fmt(inv.amount)} ر.س</td><td class="t-g fw7">${fmt(inv.paid_amount||0)} ر.س</td><td class="${rem<=0?'t-g':'t-r'} fw7">${fmt(rem)} ر.س</td><td><span class="badge ${stC}">${stL}</span></td></tr>`;
+            }).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}
 
       ${revenue.length>0?`
       <div class="card" style="margin-bottom:16px">
@@ -1754,10 +2383,9 @@ async function loadReports() {
    ───────────────────────────────────────────────── */
 function exportCSV() {
   if(!reportCache){ toast('أنشئ تقريراً أولاً','warning'); return; }
-  const {revenue,expenses,loans,discounts,from,to} = reportCache;
+  const {revenue,expenses,loans,discounts,invoices,payments,from,to} = reportCache;
   const bom = '\uFEFF';
   let csv = bom;
-
   const row = (...cols) => cols.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',') + '\n';
 
   csv += 'قسم الإيرادات\n';
@@ -1769,6 +2397,14 @@ function exportCSV() {
   csv += row('التاريخ','الفئة','المبلغ','الملاحظات');
   expenses.forEach(e=>{ csv+=row(e.date,e.category,e.amount,e.notes); });
   csv += row('الإجمالي','',expenses.reduce((s,r)=>s+Number(r.amount),0),'');
+
+  csv += '\nقسم فواتير الموردين\n';
+  csv += row('المورد','رقم الفاتورة','التاريخ','الاستحقاق','المبلغ الكلي','المدفوع','المتبقي');
+  invoices.forEach(inv=>{ const rem=Number(inv.amount)-Number(inv.paid_amount||0); csv+=row(inv.supplier_name,inv.invoice_number,inv.date,inv.due_date||'',inv.amount,inv.paid_amount||0,rem); });
+
+  csv += '\nقسم مدفوعات الموردين\n';
+  csv += row('التاريخ','المورد','المبلغ','طريقة الدفع','الملاحظات');
+  payments.forEach(p=>{ csv+=row(p.date,p.supplier_name,p.amount,p.method,p.notes); });
 
   csv += '\nقسم السلف\n';
   csv += row('اسم الموظف','التاريخ','المبلغ الكلي','المدفوع','المتبقي','الملاحظات');
@@ -1787,7 +2423,7 @@ function exportCSV() {
 }
 
 /* ─────────────────────────────────────────────────
-   HELPERS (HTML snippets)
+   HTML HELPERS
    ───────────────────────────────────────────────── */
 function emptyRow(icon, msg) {
   return `<div class="empty"><div class="empty-icon">${icon}</div><p>${msg}</p></div>`;
