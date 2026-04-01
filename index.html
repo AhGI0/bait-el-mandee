@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بيت المندي — نظام المحاسبة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sidebar-w: 250px;
+  --bg:        #f2f3f7;
+  --card:      #ffffff;
+  --sidebar:   #141f35;
+  --sidebar2:  #1a2844;
+  --accent:    #c9973b;
+  --accent2:   #a87a28;
+  --green:     #27a56a;
+  --red:       #e04545;
+  --blue:      #3474d4;
+  --purple:    #7c5cbf;
+  --text:      #1e2535;
+  --muted:     #7a849a;
+  --border:    #e4e8f0;
+  --shadow:    0 2px 12px rgba(0,0,0,.07);
+  --r:         10px;
+}
+
+html { font-size: 15px; }
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  direction: rtl;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+#loginScreen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #0d1a2e 0%, #1a2f52 50%, #0d1a2e 100%);
+  position: relative;
+  overflow: hidden;
+}
+#loginScreen::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,151,59,.15) 0%, transparent 70%);
+  top: -200px; left: -200px;
+  pointer-events: none;
+}
+#loginScreen::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(52,116,212,.12) 0%, transparent 70%);
+  bottom: -150px; right: -100px;
+  pointer-events: none;
+}
+.login-card {
+  background: rgba(255,255,255,.97);
+  border-radius: 20px;
+  padding: 44px 40px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+  position: relative;
+  z-index: 1;
+}
+.login-icon {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 12px;
+  display: block;
+}
+.login-brand {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--sidebar);
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.login-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 0 28px;
+}
+
+/* ============================================================
+   FORM CONTROLS (shared)
+   ============================================================ */
+.fg { margin-bottom: 16px; }
+.fg label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+  text-align: right;
+}
+.fg input,
+.fg select,
+.fg textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  font-size: 14px;
+  font-family: 'Tajawal', sans-serif;
+  color: var(--text);
+  background: #fff;
+  transition: border-color .18s;
+  direction: rtl;
+}
+.fg input:focus,
+.fg select:focus,
+.fg textarea:focus { outline: none; border-color: var(--accent); }
+.fg textarea { resize: vertical; min-height: 80px; }
+.fg select { cursor: pointer; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: var(--r);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: 'Tajawal', sans-serif;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary  { background: var(--accent); color: #fff; }
+.btn-primary:hover  { background: var(--accent2); }
+.btn-danger   { background: var(--red); color: #fff; }
+.btn-danger:hover   { background: #c03838; }
+.btn-success  { background: var(--green); color: #fff; }
+.btn-success:hover  { background: #1e8a58; }
+.btn-info     { background: var(--blue); color: #fff; }
+.btn-info:hover     { background: #2860b8; }
+.btn-ghost    { background: #edf2f7; color: var(--text); }
+.btn-ghost:hover    { background: #e2e8f0; }
+.btn-sm  { padding: 6px 12px; font-size: 12.5px; }
+.btn-xs  { padding: 4px 8px; font-size: 11.5px; border-radius: 6px; }
+.btn-full { width: 100%; }
+.btn-icon { padding: 6px 9px; }
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#appScreen { display: none; }
+.layout { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar);
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.sb-head {
+  padding: 24px 18px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  text-align: center;
+}
+.sb-logo { font-size: 38px; line-height: 1; margin-bottom: 8px; display: block; }
+.sb-name { font-size: 17px; font-weight: 800; color: var(--accent); letter-spacing: .3px; }
+.sb-sub  { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 3px; }
+
+.sb-nav { flex: 1; padding: 14px 0; }
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,.25);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 20px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 20px;
+  cursor: pointer;
+  transition: all .15s;
+  color: rgba(255,255,255,.55);
+  font-size: 14px;
+  font-weight: 500;
+  border-right: 3px solid transparent;
+  user-select: none;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); }
+.nav-item.active {
+  background: rgba(201,151,59,.12);
+  color: var(--accent);
+  border-right-color: var(--accent);
+}
+.nav-item .ni { font-size: 17px; width: 22px; text-align: center; flex-shrink: 0; }
+.nav-item .nl { flex: 1; }
+.nav-badge {
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
+.sb-foot {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.sb-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.05);
+  margin-bottom: 10px;
+}
+.sb-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.sb-uname { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.8); }
+.sb-urole { font-size: 11px; color: rgba(255,255,255,.35); }
+
+/* MAIN */
+.main {
+  flex: 1;
+  margin-right: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.topbar {
+  background: var(--card);
+  padding: 14px 26px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.tb-title { font-size: 18px; font-weight: 800; }
+.tb-meta  { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.tb-dot   { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+.content { padding: 24px 26px; flex: 1; }
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ============================================================
+   STAT CARDS
+   ============================================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border-right: 4px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: attr(data-icon);
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 36px;
+  opacity: .08;
+  line-height: 1;
+}
+.stat-card.c-green { border-right-color: var(--green); }
+.stat-card.c-red   { border-right-color: var(--red); }
+.stat-card.c-gold  { border-right-color: var(--accent); }
+.stat-card.c-blue  { border-right-color: var(--blue); }
+.stat-card.c-purple{ border-right-color: var(--purple); }
+.sc-label { font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.sc-value { font-size: 22px; font-weight: 800; }
+.sc-value.c-green  { color: var(--green); }
+.sc-value.c-red    { color: var(--red); }
+.sc-value.c-gold   { color: var(--accent); }
+.sc-value.c-blue   { color: var(--blue); }
+.sc-value.c-purple { color: var(--purple); }
+.sc-sub   { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+/* ============================================================
+   CARDS / PANELS
+   ============================================================ */
+.card {
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.card-head {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.card-title { font-size: 15px; font-weight: 800; }
+.card-body  { padding: 20px; }
+.card-body-0{ padding: 0; }
+
+/* ============================================================
+   FILTERS ROW
+   ============================================================ */
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.filter-group input,
+.filter-group select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Tajawal', sans-serif;
+  color: var(--text);
+  background: #fff;
+  direction: rtl;
+  transition: border-color .15s;
+}
+.filter-group input:focus,
+.filter-group select:focus { outline: none; border-color: var(--accent); }
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: #f6f8fc;
+  padding: 10px 14px;
+  text-align: right;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #f9fafb; }
+.tfoot td {
+  padding: 11px 14px;
+  background: #f0f4fa;
+  font-weight: 800;
+  font-size: 13px;
+  border-top: 2px solid var(--border);
+}
+.act-cell { display: flex; gap: 5px; align-items: center; }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.b-green  { background: #edfbf3; color: #1a8a58; }
+.b-red    { background: #fff0f0; color: #c03838; }
+.b-gold   { background: #fff8ec; color: #946f1a; }
+.b-blue   { background: #eef5ff; color: #2658a8; }
+.b-purple { background: #f3eeff; color: #5e3fa8; }
+.b-gray   { background: #f0f2f6; color: #5a6478; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,15,30,.55);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 70px rgba(0,0,0,.35);
+  animation: slideUp .2s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-size: 16px; font-weight: 800; }
+.modal-close {
+  background: #f0f2f6;
+  border: none;
+  border-radius: 6px;
+  width: 30px; height: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  transition: all .15s;
+}
+.modal-close:hover { background: var(--red); color: #fff; }
+.modal-body { padding: 22px; }
+.modal-foot {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+/* ============================================================
+   TOAST ALERT
+   ============================================================ */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-90px);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 10px 40px rgba(0,0,0,.18);
+  z-index: 99999;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  border-right: 4px solid var(--green);
+  min-width: 240px;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.t-error   { border-right-color: var(--red); }
+.toast.t-warning { border-right-color: var(--accent); }
+
+/* ============================================================
+   EMPTY STATE / LOADING
+   ============================================================ */
+.empty {
+  text-align: center;
+  padding: 44px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 44px; margin-bottom: 10px; opacity: .5; }
+.empty p { font-size: 14px; }
+.loading { text-align: center; padding: 36px; color: var(--muted); font-size: 14px; }
+.spin { display: inline-block; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.prog-wrap { background: #eee; border-radius: 4px; height: 7px; flex: 1; overflow: hidden; }
+.prog-bar  { height: 100%; border-radius: 4px; background: var(--red); transition: width .3s; }
+
+/* ============================================================
+   LOAN STATUS
+   ============================================================ */
+.loan-status {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ls-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+/* ============================================================
+   DASHBOARD GRID
+   ============================================================ */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============================================================
+   REPORT SUMMARY BLOCK
+   ============================================================ */
+.report-summary {
+  background: linear-gradient(135deg, var(--sidebar) 0%, var(--sidebar2) 100%);
+  border-radius: var(--r);
+  padding: 24px;
+  color: #fff;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 20px;
+}
+.rs-item { text-align: center; }
+.rs-label { font-size: 11px; color: rgba(255,255,255,.5); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.rs-value { font-size: 22px; font-weight: 800; }
+.rs-value.g { color: #5fdd9c; }
+.rs-value.r { color: #ff7575; }
+.rs-value.a { color: var(--accent); }
+.rs-value.b { color: #7ab8ff; }
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+.fw7 { font-weight: 700; }
+.fw8 { font-weight: 800; }
+.t-g { color: var(--green); }
+.t-r { color: var(--red); }
+.t-a { color: var(--accent); }
+.t-b { color: var(--blue); }
+.t-m { color: var(--muted); }
+.mt1 { margin-top: 6px; }
+.mt2 { margin-top: 12px; }
+.mt3 { margin-top: 20px; }
+.flex { display: flex; }
+.gap2 { gap: 8px; }
+.items-c { align-items: center; }
+.between { justify-content: space-between; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 700px) {
+  :root { --sidebar-w: 64px; }
+  .sb-name,.sb-sub,.nl,.nav-section-title,.sb-uname,.sb-urole { display: none; }
+  .sb-logo { font-size: 28px; }
+  .nav-item { justify-content: center; padding: 13px 0; }
+  .content { padding: 16px; }
+  .topbar { padding: 12px 16px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <span class="login-icon">🍖</span>
+    <div class="login-brand">بيت المندي</div>
+    <div class="login-sub">نظام إدارة المحاسبة</div>
+    <div class="login-divider"></div>
+    <div class="fg">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPw" placeholder="أدخل كلمة المرور"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="font-size:15px;padding:12px;">
+      🔐 دخول
+    </button>
+    <p class="t-m mt2" style="font-size:12px;text-align:center">كلمة المرور الافتراضية: <strong>admin123</strong></p>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="appScreen">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-head">
+        <span class="sb-logo">🍖</span>
+        <div class="sb-name">بيت المندي</div>
+        <div class="sb-sub">نظام المحاسبة</div>
+      </div>
+
+      <nav class="sb-nav">
+        <div class="nav-section-title">الرئيسية</div>
+        <div class="nav-item active" id="nav-dashboard" onclick="go('dashboard')">
+          <span class="ni">📊</span><span class="nl">لوحة التحكم</span>
+        </div>
+
+        <div class="nav-section-title">المالية</div>
+        <div class="nav-item" id="nav-revenue" onclick="go('revenue')">
+          <span class="ni">💰</span><span class="nl">الإيرادات</span>
+        </div>
+        <div class="nav-item" id="nav-expenses" onclick="go('expenses')">
+          <span class="ni">💸</span><span class="nl">المصروفات</span>
+        </div>
+
+        <div class="nav-section-title">الموظفون</div>
+        <div class="nav-item" id="nav-loans" onclick="go('loans')">
+          <span class="ni">🤝</span><span class="nl">السلف</span>
+        </div>
+        <div class="nav-item" id="nav-discounts" onclick="go('discounts')">
+          <span class="ni">🏷️</span><span class="nl">الخصومات</span>
+        </div>
+
+        <div class="nav-section-title">التحليل</div>
+        <div class="nav-item" id="nav-reports" onclick="go('reports')">
+          <span class="ni">📈</span><span class="nl">التقارير</span>
+        </div>
+      </nav>
+
+      <div class="sb-foot">
+        <div class="sb-user">
+          <div class="sb-avatar">م</div>
+          <div>
+            <div class="sb-uname">المدير</div>
+            <div class="sb-urole">Admin</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()">🚪 تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+      <div class="topbar">
+        <div class="tb-title" id="tbTitle">لوحة التحكم</div>
+        <div class="tb-meta">
+          <span class="tb-dot"></span>
+          <span id="tbDate"></span>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- ── DASHBOARD ── -->
+        <div id="sec-dashboard" class="section active">
+          <div class="stats-grid" id="dashStats">
+            <div class="loading"><span class="spin">⟳</span> جاري التحميل...</div>
+          </div>
+          <div class="dash-grid" id="dashTables"></div>
+        </div>
+
+        <!-- ── REVENUE ── -->
+        <div id="sec-revenue" class="section">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">💰 الإيرادات اليومية</span>
+              <button class="btn btn-primary btn-sm" onclick="openRevModal()">＋ إضافة إيراد</button>
+            </div>
+            <div class="card-body">
+              <div class="filters">
+                <div class="filter-group">
+                  <label>من تاريخ</label>
+                  <input type="date" id="revFrom">
+                </div>
+                <div class="filter-group">
+                  <label>إلى تاريخ</label>
+                  <input type="date" id="revTo">
+                </div>
+                <div class="filter-group" style="justify-content:flex-end">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-ghost btn-sm" onclick="loadRevenue()">🔍 بحث</button>
+                </div>
+              </div>
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>التاريخ</th>
+                      <th>المبلغ (ر.س)</th>
+                      <th>الملاحظات</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="revTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── EXPENSES ── -->
+        <div id="sec-expenses" class="section">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">💸 المصروفات</span>
+              <button class="btn btn-primary btn-sm" onclick="openExpModal()">＋ إضافة مصروف</button>
+            </div>
+            <div class="card-body">
+              <div class="filters">
+                <div class="filter-group">
+                  <label>من تاريخ</label>
+                  <input type="date" id="expFrom">
+                </div>
+                <div class="filter-group">
+                  <label>إلى تاريخ</label>
+                  <input type="date" id="expTo">
+                </div>
+                <div class="filter-group">
+                  <label>الفئة</label>
+                  <select id="expCat">
+                    <option value="">الكل</option>
+                    <option>إيجار</option>
+                    <option>مواد غذائية</option>
+                    <option>رواتب</option>
+                    <option>مرافق</option>
+                    <option>صيانة</option>
+                    <option>تسويق</option>
+                    <option>نقل وشحن</option>
+                    <option>أخرى</option>
+                  </select>
+                </div>
+                <div class="filter-group" style="justify-content:flex-end">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-ghost btn-sm" onclick="loadExpenses()">🔍 بحث</button>
+                </div>
+              </div>
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>التاريخ</th>
+                      <th>الفئة</th>
+                      <th>المبلغ (ر.س)</th>
+                      <th>الملاحظات</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="expTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── LOANS ── -->
+        <div id="sec-loans" class="section">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">🤝 سلف الموظفين</span>
+              <button class="btn btn-primary btn-sm" onclick="openLoanModal()">＋ إضافة سلفة</button>
+            </div>
+            <div class="card-body">
+              <div class="filters">
+                <div class="filter-group">
+                  <label>اسم الموظف</label>
+                  <input type="text" id="loanSearch" placeholder="بحث...">
+                </div>
+                <div class="filter-group">
+                  <label>من تاريخ</label>
+                  <input type="date" id="loanFrom">
+                </div>
+                <div class="filter-group">
+                  <label>إلى تاريخ</label>
+                  <input type="date" id="loanTo">
+                </div>
+                <div class="filter-group">
+                  <label>الحالة</label>
+                  <select id="loanStatus">
+                    <option value="">الكل</option>
+                    <option value="pending">معلقة</option>
+                    <option value="partial">جزئي</option>
+                    <option value="paid">مسددة</option>
+                  </select>
+                </div>
+                <div class="filter-group" style="justify-content:flex-end">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-ghost btn-sm" onclick="loadLoans()">🔍 بحث</button>
+                </div>
+              </div>
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>الموظف</th>
+                      <th>التاريخ</th>
+                      <th>المبلغ الكلي</th>
+                      <th>المدفوع</th>
+                      <th>المتبقي</th>
+                      <th>الحالة</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="loanTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── DISCOUNTS ── -->
+        <div id="sec-discounts" class="section">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">🏷️ الخصومات</span>
+              <button class="btn btn-primary btn-sm" onclick="openDiscModal()">＋ إضافة خصم</button>
+            </div>
+            <div class="card-body">
+              <div class="filters">
+                <div class="filter-group">
+                  <label>الاسم</label>
+                  <input type="text" id="discSearch" placeholder="بحث...">
+                </div>
+                <div class="filter-group">
+                  <label>من تاريخ</label>
+                  <input type="date" id="discFrom">
+                </div>
+                <div class="filter-group">
+                  <label>إلى تاريخ</label>
+                  <input type="date" id="discTo">
+                </div>
+                <div class="filter-group" style="justify-content:flex-end">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-ghost btn-sm" onclick="loadDiscounts()">🔍 بحث</button>
+                </div>
+              </div>
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>الاسم</th>
+                      <th>التاريخ</th>
+                      <th>المبلغ (ر.س)</th>
+                      <th>السبب</th>
+                      <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="discTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── REPORTS ── -->
+        <div id="sec-reports" class="section">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">📈 التقارير</span>
+              <button class="btn btn-success btn-sm" onclick="exportCSV()">📥 تصدير CSV</button>
+            </div>
+            <div class="card-body">
+              <div class="filters" style="margin-bottom:20px;">
+                <div class="filter-group">
+                  <label>من تاريخ</label>
+                  <input type="date" id="repFrom">
+                </div>
+                <div class="filter-group">
+                  <label>إلى تاريخ</label>
+                  <input type="date" id="repTo">
+                </div>
+                <div class="filter-group">
+                  <label>فترة سريعة</label>
+                  <select id="repPreset" onchange="applyPreset()">
+                    <option value="">اختر فترة...</option>
+                    <option value="today">اليوم</option>
+                    <option value="week">هذا الأسبوع</option>
+                    <option value="month">هذا الشهر</option>
+                    <option value="last30">آخر 30 يوم</option>
+                    <option value="last90">آخر 90 يوم</option>
+                  </select>
+                </div>
+                <div class="filter-group" style="justify-content:flex-end">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-primary btn-sm" onclick="loadReports()">📊 إنشاء التقرير</button>
+                </div>
+              </div>
+              <div id="repContent">
+                <div class="empty">
+                  <div class="empty-icon">📊</div>
+                  <p>اختر نطاقاً زمنياً وانقر "إنشاء التقرير"</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /appScreen -->
+
+<!-- ============================================================
+     MODAL
+     ============================================================ -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle">عنوان</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">تمت العملية</span>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────────────
+   ⚙  CONFIGURATION — Edit these before first use
+   ───────────────────────────────────────────────── */
+const CONFIG = {
+  supabaseUrl:  'https://cktegsqvurvsojxdtloh.supabase.co',        // ← ضع رابط Supabase
+  supabaseKey:  'sb_publishable_wAUWL8oKZp2uH5NzlprqVA_flapV_Yw',   // ← ضع المفتاح العام
+  adminPass:    '2001',                  // ← غيّر كلمة المرور
+};
+
+/* ─────────────────────────────────────────────────
+   SUPABASE CLIENT
+   ───────────────────────────────────────────────── */
+const { createClient } = supabase;
+let db;
+try {
+  db = createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+} catch(e) {
+  console.warn('Supabase init failed — using demo mode');
+}
+
+/* ─────────────────────────────────────────────────
+   STATE
+   ───────────────────────────────────────────────── */
+let currentSection = 'dashboard';
+let modalCallback  = null;
+let reportCache    = null;
+
+/* ─────────────────────────────────────────────────
+   UTILITIES
+   ───────────────────────────────────────────────── */
+const fmt  = (n) => Number(n||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtD = (d) => { if(!d) return '—'; const dt=new Date(d); return dt.toLocaleDateString('ar-SA',{year:'numeric',month:'short',day:'numeric'}); };
+const today = () => new Date().toISOString().split('T')[0];
+const monthStart = () => { const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().split('T')[0]; };
+const escQ = s => (s||'').replace(/'/g,"\\'");
+
+/* toast notifications */
+function toast(msg, type='success') {
+  const el  = document.getElementById('toast');
+  const ico = document.getElementById('toastIcon');
+  const txt = document.getElementById('toastMsg');
+  const icons = {success:'✅', error:'❌', warning:'⚠️'};
+  el.className = 'toast show' + (type!=='success' ? ' t-'+type : '');
+  ico.textContent = icons[type]||'✅';
+  txt.textContent = msg;
+  setTimeout(()=>el.classList.remove('show'), 3200);
+}
+
+/* confirm dialog (uses native for simplicity) */
+const ask = (msg) => confirm(msg);
+
+/* ─────────────────────────────────────────────────
+   AUTH
+   ───────────────────────────────────────────────── */
+function doLogin() {
+  const pw = document.getElementById('loginPw').value;
+  if (pw === CONFIG.adminPass) {
+    sessionStorage.setItem('auth','1');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    initApp();
+  } else {
+    toast('كلمة المرور غير صحيحة','error');
+    document.getElementById('loginPw').focus();
+  }
+}
+function doLogout() {
+  sessionStorage.removeItem('auth');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+}
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(sessionStorage.getItem('auth')){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    initApp();
+  }
+  document.getElementById('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+});
+
+function initApp() {
+  // topbar date
+  document.getElementById('tbDate').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  go('dashboard');
+}
+
+/* ─────────────────────────────────────────────────
+   NAVIGATION
+   ───────────────────────────────────────────────── */
+const secTitles = {
+  dashboard: 'لوحة التحكم',
+  revenue:   'الإيرادات',
+  expenses:  'المصروفات',
+  loans:     'سلف الموظفين',
+  discounts: 'الخصومات',
+  reports:   'التقارير',
+};
+const secLoaders = {
+  dashboard: loadDashboard,
+  revenue:   loadRevenue,
+  expenses:  loadExpenses,
+  loans:     loadLoans,
+  discounts: loadDiscounts,
+  reports:   ()=>{},
+};
+
+function go(sec) {
+  currentSection = sec;
+  // nav highlight
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active', el.id==='nav-'+sec);
+  });
+  // section switch
+  document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  // title
+  document.getElementById('tbTitle').textContent = secTitles[sec]||sec;
+  // load
+  if(secLoaders[sec]) secLoaders[sec]();
+}
+
+/* ─────────────────────────────────────────────────
+   MODAL
+   ───────────────────────────────────────────────── */
+function openModal(title, bodyHtml, saveLabel, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFoot').innerHTML = `
+    <button class="btn btn-primary" onclick="runModalCb()">${saveLabel||'حفظ'}</button>
+    <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+  `;
+  modalCallback = cb;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  modalCallback = null;
+}
+function overlayClick(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+async function runModalCb() { if(modalCallback) await modalCallback(); }
+
+/* helper: validate required fields */
+function validateFields(ids) {
+  for(const id of ids) {
+    const el = document.getElementById(id);
+    if(!el||!el.value.trim()){ toast('يرجى ملء جميع الحقول المطلوبة','error'); el&&el.focus(); return false; }
+  }
+  return true;
+}
+
+/* ─────────────────────────────────────────────────
+   DB HELPERS
+   ───────────────────────────────────────────────── */
+async function dbSelect(table, query={}) {
+  let q = db.from(table).select('*').order(query.order||'date',{ascending:false});
+  if(query.eq)    for(const[k,v] of Object.entries(query.eq)) q=q.eq(k,v);
+  if(query.gte)   for(const[k,v] of Object.entries(query.gte)) q=q.gte(k,v);
+  if(query.lte)   for(const[k,v] of Object.entries(query.lte)) q=q.lte(k,v);
+  if(query.ilike) for(const[k,v] of Object.entries(query.ilike)) q=q.ilike(k,v);
+  if(query.limit) q=q.limit(query.limit);
+  const {data,error} = await q;
+  if(error) throw error;
+  return data||[];
+}
+async function dbInsert(table, data) {
+  const {error} = await db.from(table).insert(data);
+  if(error) throw error;
+}
+async function dbUpdate(table, id, data) {
+  const {error} = await db.from(table).update(data).eq('id',id);
+  if(error) throw error;
+}
+async function dbDelete(table, id) {
+  const {error} = await db.from(table).delete().eq('id',id);
+  if(error) throw error;
+}
+
+/* ─────────────────────────────────────────────────
+   DASHBOARD
+   ───────────────────────────────────────────────── */
+async function loadDashboard() {
+  document.getElementById('dashStats').innerHTML = '<div class="loading"><span class="spin">⟳</span> جاري التحميل...</div>';
+  document.getElementById('dashTables').innerHTML = '';
+  try {
+    const t  = today();
+    const ms = monthStart();
+    const [revToday,expToday,revMonth,expMonth,loansAll,discMonth,revRecent,expRecent] = await Promise.all([
+      dbSelect('revenue',  {eq:{date:t}}),
+      dbSelect('expenses', {eq:{date:t}}),
+      dbSelect('revenue',  {gte:{date:ms}, lte:{date:t}}),
+      dbSelect('expenses', {gte:{date:ms}, lte:{date:t}}),
+      dbSelect('loans',    {}),
+      dbSelect('discounts',{gte:{date:ms}, lte:{date:t}}),
+      dbSelect('revenue',  {limit:6}),
+      dbSelect('expenses', {limit:6}),
+    ]);
+    const sum  = (arr,k='amount') => arr.reduce((s,r)=>s+Number(r[k]||0),0);
+    const todayRev  = sum(revToday);
+    const todayExp  = sum(expToday);
+    const todayP    = todayRev - todayExp;
+    const mRev      = sum(revMonth);
+    const mExp      = sum(expMonth);
+    const mProfit   = mRev - mExp;
+    const totalLoansPending = sum(loansAll.map(l=>({amount:Number(l.amount)-Number(l.paid_amount||0)})));
+    const mDisc     = sum(discMonth);
+
+    document.getElementById('dashStats').innerHTML = `
+      <div class="stat-card c-green" data-icon="💰">
+        <div class="sc-label">إيرادات اليوم</div>
+        <div class="sc-value c-green">${fmt(todayRev)}</div>
+        <div class="sc-sub">ريال سعودي</div>
+      </div>
+      <div class="stat-card c-red" data-icon="💸">
+        <div class="sc-label">مصروفات اليوم</div>
+        <div class="sc-value c-red">${fmt(todayExp)}</div>
+        <div class="sc-sub">ريال سعودي</div>
+      </div>
+      <div class="stat-card ${todayP>=0?'c-green':'c-red'}" data-icon="📊">
+        <div class="sc-label">صافي ربح اليوم</div>
+        <div class="sc-value ${todayP>=0?'c-green':'c-red'}">${fmt(todayP)}</div>
+        <div class="sc-sub">${todayP>=0?'▲ ربح':'▼ خسارة'}</div>
+      </div>
+      <div class="stat-card c-blue" data-icon="📅">
+        <div class="sc-label">إيرادات الشهر</div>
+        <div class="sc-value c-blue">${fmt(mRev)}</div>
+        <div class="sc-sub">الشهر الحالي</div>
+      </div>
+      <div class="stat-card c-red" data-icon="📉">
+        <div class="sc-label">مصروفات الشهر</div>
+        <div class="sc-value c-red">${fmt(mExp)}</div>
+        <div class="sc-sub">الشهر الحالي</div>
+      </div>
+      <div class="stat-card ${mProfit>=0?'c-green':'c-red'}" data-icon="💹">
+        <div class="sc-label">صافي الشهر</div>
+        <div class="sc-value ${mProfit>=0?'c-green':'c-red'}">${fmt(mProfit)}</div>
+        <div class="sc-sub">${mProfit>=0?'▲ ربح':'▼ خسارة'}</div>
+      </div>
+      <div class="stat-card c-gold" data-icon="🤝">
+        <div class="sc-label">سلف معلقة</div>
+        <div class="sc-value c-gold">${fmt(totalLoansPending)}</div>
+        <div class="sc-sub">إجمالي غير مسدد</div>
+      </div>
+      <div class="stat-card c-purple" data-icon="🏷️">
+        <div class="sc-label">خصومات الشهر</div>
+        <div class="sc-value c-purple">${fmt(mDisc)}</div>
+        <div class="sc-sub">الشهر الحالي</div>
+      </div>
+    `;
+
+    const noData = '<tr><td colspan="3"><div class="empty" style="padding:20px"><p>لا توجد بيانات</p></div></td></tr>';
+    document.getElementById('dashTables').innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">آخر الإيرادات</span>
+          <button class="btn btn-ghost btn-xs" onclick="go('revenue')">عرض الكل ←</button>
+        </div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>التاريخ</th><th>المبلغ</th><th>الملاحظات</th></tr></thead>
+            <tbody>${revRecent.length===0?noData:revRecent.map(r=>`
+              <tr>
+                <td>${fmtD(r.date)}</td>
+                <td class="t-g fw7">${fmt(r.amount)} ر.س</td>
+                <td class="t-m" style="font-size:12.5px">${r.notes||'—'}</td>
+              </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">آخر المصروفات</span>
+          <button class="btn btn-ghost btn-xs" onclick="go('expenses')">عرض الكل ←</button>
+        </div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>التاريخ</th><th>الفئة</th><th>المبلغ</th></tr></thead>
+            <tbody>${expRecent.length===0?noData:expRecent.map(e=>`
+              <tr>
+                <td>${fmtD(e.date)}</td>
+                <td>${catBadge(e.category)}</td>
+                <td class="t-r fw7">${fmt(e.amount)} ر.س</td>
+              </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } catch(err) {
+    console.error(err);
+    document.getElementById('dashStats').innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>تأكد من إعداد Supabase في ملف index.html<br><small>${err.message||''}</small></p></div>`;
+  }
+}
+
+/* ─────────────────────────────────────────────────
+   REVENUE
+   ───────────────────────────────────────────────── */
+async function loadRevenue() {
+  const tbody = document.getElementById('revTbody');
+  tbody.innerHTML = '<tr><td colspan="5"><div class="loading"><span class="spin">⟳</span> جاري التحميل...</div></td></tr>';
+  try {
+    const q = {};
+    const from = document.getElementById('revFrom').value;
+    const to   = document.getElementById('revTo').value;
+    if(from) q.gte = {date:from};
+    if(to)   q.lte = {date:to};
+    const data = await dbSelect('revenue', q);
+    if(data.length===0){ tbody.innerHTML='<tr><td colspan="5">'+emptyRow('💰','لا توجد إيرادات')+'</td></tr>'; return; }
+    const total = data.reduce((s,r)=>s+Number(r.amount),0);
+    tbody.innerHTML = data.map((r,i)=>`
+      <tr>
+        <td class="t-m">${i+1}</td>
+        <td>${fmtD(r.date)}</td>
+        <td class="t-g fw7">${fmt(r.amount)} ر.س</td>
+        <td class="t-m" style="font-size:12.5px">${r.notes||'—'}</td>
+        <td>
+          <div class="act-cell">
+            <button class="btn btn-ghost btn-xs" onclick="editRev('${r.id}','${r.date}',${r.amount},'${escQ(r.notes||'')}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="delRev('${r.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('') +
+      `<tr class="tfoot"><td colspan="2" class="fw8">الإجمالي</td><td class="t-g fw8">${fmt(total)} ر.س</td><td colspan="2"></td></tr>`;
+  } catch(err){ tbody.innerHTML='<tr><td colspan="5">'+errRow(err)+'</td></tr>'; }
+}
+
+function openRevModal(id,date,amount,notes) {
+  const isEdit = !!id;
+  openModal(
+    isEdit ? 'تعديل إيراد' : 'إضافة إيراد جديد',
+    `<div class="fg"><label>التاريخ *</label><input type="date" id="f_date" value="${date||today()}"></div>
+     <div class="fg"><label>المبلغ (ريال) *</label><input type="number" id="f_amount" value="${amount||''}" placeholder="0.00" min="0" step="0.01"></div>
+     <div class="fg"><label>ملاحظات</label><textarea id="f_notes">${notes||''}</textarea></div>`,
+    isEdit ? 'تحديث' : 'إضافة',
+    async () => {
+      if(!validateFields(['f_date','f_amount'])) return;
+      const payload = {
+        date:   document.getElementById('f_date').value,
+        amount: parseFloat(document.getElementById('f_amount').value),
+        notes:  document.getElementById('f_notes').value,
+      };
+      try {
+        isEdit ? await dbUpdate('revenue',id,payload) : await dbInsert('revenue',payload);
+        toast(isEdit?'تم التحديث بنجاح':'تم الإضافة بنجاح');
+        closeModal();
+        loadRevenue();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+const editRev = openRevModal;
+async function delRev(id) {
+  if(!ask('هل أنت متأكد من حذف هذا الإيراد؟')) return;
+  try { await dbDelete('revenue',id); toast('تم الحذف'); loadRevenue(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+/* ─────────────────────────────────────────────────
+   EXPENSES
+   ───────────────────────────────────────────────── */
+const EXP_CATS = ['إيجار','مواد غذائية','رواتب','مرافق','صيانة','تسويق','نقل وشحن','أخرى'];
+const CAT_BADGE = {
+  'إيجار':'b-red','مواد غذائية':'b-green','رواتب':'b-blue',
+  'مرافق':'b-gold','صيانة':'b-red','تسويق':'b-purple',
+  'نقل وشحن':'b-gold','أخرى':'b-gray'
+};
+function catBadge(cat){ return `<span class="badge ${CAT_BADGE[cat]||'b-gray'}">${cat||'—'}</span>`; }
+
+async function loadExpenses() {
+  const tbody = document.getElementById('expTbody');
+  tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><span class="spin">⟳</span></div></td></tr>';
+  try {
+    const q = {};
+    const from = document.getElementById('expFrom').value;
+    const to   = document.getElementById('expTo').value;
+    const cat  = document.getElementById('expCat').value;
+    if(from) q.gte = {date:from};
+    if(to)   q.lte = {date:to};
+    if(cat)  q.eq  = {category:cat};
+    const data = await dbSelect('expenses', q);
+    if(data.length===0){ tbody.innerHTML='<tr><td colspan="6">'+emptyRow('💸','لا توجد مصروفات')+'</td></tr>'; return; }
+    const total = data.reduce((s,r)=>s+Number(r.amount),0);
+    tbody.innerHTML = data.map((e,i)=>`
+      <tr>
+        <td class="t-m">${i+1}</td>
+        <td>${fmtD(e.date)}</td>
+        <td>${catBadge(e.category)}</td>
+        <td class="t-r fw7">${fmt(e.amount)} ر.س</td>
+        <td class="t-m" style="font-size:12.5px">${e.notes||'—'}</td>
+        <td>
+          <div class="act-cell">
+            <button class="btn btn-ghost btn-xs" onclick="editExp('${e.id}','${e.date}','${escQ(e.category)}',${e.amount},'${escQ(e.notes||'')}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="delExp('${e.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('') +
+      `<tr class="tfoot"><td colspan="3" class="fw8">الإجمالي</td><td class="t-r fw8">${fmt(total)} ر.س</td><td colspan="2"></td></tr>`;
+  } catch(err){ tbody.innerHTML='<tr><td colspan="6">'+errRow(err)+'</td></tr>'; }
+}
+
+function openExpModal(id,date,cat,amount,notes) {
+  const isEdit = !!id;
+  const opts = EXP_CATS.map(c=>`<option value="${c}" ${c===(cat||EXP_CATS[0])?'selected':''}>${c}</option>`).join('');
+  openModal(
+    isEdit ? 'تعديل مصروف' : 'إضافة مصروف جديد',
+    `<div class="fg"><label>التاريخ *</label><input type="date" id="f_date" value="${date||today()}"></div>
+     <div class="fg"><label>الفئة *</label><select id="f_cat">${opts}</select></div>
+     <div class="fg"><label>المبلغ (ريال) *</label><input type="number" id="f_amount" value="${amount||''}" placeholder="0.00" min="0" step="0.01"></div>
+     <div class="fg"><label>ملاحظات</label><textarea id="f_notes">${notes||''}</textarea></div>`,
+    isEdit ? 'تحديث' : 'إضافة',
+    async () => {
+      if(!validateFields(['f_date','f_amount'])) return;
+      const payload = {
+        date:     document.getElementById('f_date').value,
+        category: document.getElementById('f_cat').value,
+        amount:   parseFloat(document.getElementById('f_amount').value),
+        notes:    document.getElementById('f_notes').value,
+      };
+      try {
+        isEdit ? await dbUpdate('expenses',id,payload) : await dbInsert('expenses',payload);
+        toast(isEdit?'تم التحديث':'تم الإضافة');
+        closeModal(); loadExpenses();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+const editExp = openExpModal;
+async function delExp(id) {
+  if(!ask('هل أنت متأكد من حذف هذا المصروف؟')) return;
+  try { await dbDelete('expenses',id); toast('تم الحذف'); loadExpenses(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+/* ─────────────────────────────────────────────────
+   LOANS  (السلف)
+   ───────────────────────────────────────────────── */
+function loanStatus(amount, paid) {
+  const rem = Number(amount) - Number(paid||0);
+  if(rem<=0)   return {label:'مسددة',cls:'b-green'};
+  if(paid>0)   return {label:'جزئي', cls:'b-gold'};
+  return           {label:'معلقة', cls:'b-red'};
+}
+
+async function loadLoans() {
+  const tbody = document.getElementById('loanTbody');
+  tbody.innerHTML = '<tr><td colspan="8"><div class="loading"><span class="spin">⟳</span></div></td></tr>';
+  try {
+    const q = {};
+    const search = document.getElementById('loanSearch').value.trim();
+    const from   = document.getElementById('loanFrom').value;
+    const to     = document.getElementById('loanTo').value;
+    if(search) q.ilike = {employee_name:`%${search}%`};
+    if(from)   q.gte   = {date:from};
+    if(to)     q.lte   = {date:to};
+    let data = await dbSelect('loans', q);
+
+    // client-side status filter
+    const statusF = document.getElementById('loanStatus').value;
+    if(statusF) {
+      data = data.filter(l=>{
+        const rem = Number(l.amount)-Number(l.paid_amount||0);
+        if(statusF==='paid')    return rem<=0;
+        if(statusF==='partial') return rem>0 && Number(l.paid_amount||0)>0;
+        if(statusF==='pending') return Number(l.paid_amount||0)===0 && rem>0;
+        return true;
+      });
+    }
+
+    if(data.length===0){ tbody.innerHTML='<tr><td colspan="8">'+emptyRow('🤝','لا توجد سلف')+'</td></tr>'; return; }
+    const tAmt  = data.reduce((s,r)=>s+Number(r.amount),0);
+    const tPaid = data.reduce((s,r)=>s+Number(r.paid_amount||0),0);
+    const tRem  = tAmt - tPaid;
+    tbody.innerHTML = data.map((l,i)=>{
+      const rem = Number(l.amount)-Number(l.paid_amount||0);
+      const pct = l.amount>0 ? (Number(l.paid_amount||0)/Number(l.amount)*100).toFixed(0) : 0;
+      const st  = loanStatus(l.amount, l.paid_amount);
+      return `<tr>
+        <td class="t-m">${i+1}</td>
+        <td class="fw7">${l.employee_name}</td>
+        <td>${fmtD(l.date)}</td>
+        <td class="t-r fw7">${fmt(l.amount)} ر.س</td>
+        <td class="t-g fw7">${fmt(l.paid_amount||0)} ر.س</td>
+        <td>
+          <div class="loan-status">
+            <div class="ls-row"><span class="fw7 ${rem<=0?'t-g':'t-r'}">${fmt(rem)} ر.س</span><span>${pct}%</span></div>
+            <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${rem<=0?'var(--green)':'var(--red)'}"></div></div>
+          </div>
+        </td>
+        <td><span class="badge ${st.cls}">${st.label}</span></td>
+        <td>
+          <div class="act-cell">
+            <button class="btn btn-success btn-xs" onclick="openPayModal('${l.id}','${escQ(l.employee_name)}',${l.amount},${l.paid_amount||0})">💵</button>
+            <button class="btn btn-ghost btn-xs" onclick="editLoan('${l.id}','${l.date}','${escQ(l.employee_name)}',${l.amount},${l.paid_amount||0},'${escQ(l.notes||'')}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="delLoan('${l.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('') +
+    `<tr class="tfoot"><td colspan="3" class="fw8">الإجمالي</td><td class="t-r fw8">${fmt(tAmt)} ر.س</td><td class="t-g fw8">${fmt(tPaid)} ر.س</td><td class="t-a fw8">${fmt(tRem)} ر.س</td><td colspan="2"></td></tr>`;
+  } catch(err){ tbody.innerHTML='<tr><td colspan="8">'+errRow(err)+'</td></tr>'; }
+}
+
+function openLoanModal(id,date,emp,amount,paid,notes) {
+  const isEdit = !!id;
+  openModal(
+    isEdit ? 'تعديل سلفة' : 'إضافة سلفة جديدة',
+    `<div class="fg"><label>اسم الموظف *</label><input type="text" id="f_emp" value="${emp||''}" placeholder="اسم الموظف"></div>
+     <div class="fg"><label>التاريخ *</label><input type="date" id="f_date" value="${date||today()}"></div>
+     <div class="fg"><label>المبلغ الكلي (ريال) *</label><input type="number" id="f_amount" value="${amount||''}" placeholder="0.00" min="0" step="0.01"></div>
+     ${isEdit?`<div class="fg"><label>المبلغ المدفوع (ريال)</label><input type="number" id="f_paid" value="${paid||0}" min="0" step="0.01"></div>`:''}
+     <div class="fg"><label>ملاحظات</label><textarea id="f_notes">${notes||''}</textarea></div>`,
+    isEdit?'تحديث':'إضافة',
+    async () => {
+      if(!validateFields(['f_emp','f_date','f_amount'])) return;
+      const payload = {
+        employee_name: document.getElementById('f_emp').value,
+        date:   document.getElementById('f_date').value,
+        amount: parseFloat(document.getElementById('f_amount').value),
+        paid_amount: parseFloat(document.getElementById('f_paid')?.value||0),
+        notes:  document.getElementById('f_notes').value,
+      };
+      if(!isEdit) payload.paid_amount = 0;
+      try {
+        isEdit ? await dbUpdate('loans',id,payload) : await dbInsert('loans',payload);
+        toast(isEdit?'تم التحديث':'تم الإضافة');
+        closeModal(); loadLoans();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+const editLoan = openLoanModal;
+
+function openPayModal(id, emp, totalAmt, paidAmt) {
+  const rem = totalAmt - paidAmt;
+  openModal(
+    `سداد سلفة — ${emp}`,
+    `<div style="background:#f6f8fc;border-radius:8px;padding:14px;margin-bottom:18px">
+       <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span class="t-m">المبلغ الكلي:</span><span class="fw7">${fmt(totalAmt)} ر.س</span></div>
+       <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span class="t-m">المدفوع حتى الآن:</span><span class="t-g fw7">${fmt(paidAmt)} ر.س</span></div>
+       <div style="display:flex;justify-content:space-between"><span class="t-m">المتبقي:</span><span class="t-r fw7">${fmt(rem)} ر.س</span></div>
+     </div>
+     <div class="fg"><label>مبلغ السداد (ريال) *</label><input type="number" id="f_pay" placeholder="0.00" max="${rem}" min="0.01" step="0.01"></div>`,
+    'تأكيد السداد',
+    async () => {
+      const pay = parseFloat(document.getElementById('f_pay').value||0);
+      if(!pay||pay<=0){ toast('أدخل مبلغاً صحيحاً','error'); return; }
+      if(pay>rem){ toast('المبلغ أكبر من المتبقي','error'); return; }
+      try {
+        await dbUpdate('loans',id,{paid_amount: paidAmt+pay});
+        toast('تم تسجيل السداد بنجاح');
+        closeModal(); loadLoans();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+
+async function delLoan(id) {
+  if(!ask('هل أنت متأكد من حذف هذه السلفة؟')) return;
+  try { await dbDelete('loans',id); toast('تم الحذف'); loadLoans(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+/* ─────────────────────────────────────────────────
+   DISCOUNTS  (الخصومات)
+   ───────────────────────────────────────────────── */
+async function loadDiscounts() {
+  const tbody = document.getElementById('discTbody');
+  tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><span class="spin">⟳</span></div></td></tr>';
+  try {
+    const q = {};
+    const search = document.getElementById('discSearch').value.trim();
+    const from   = document.getElementById('discFrom').value;
+    const to     = document.getElementById('discTo').value;
+    if(search) q.ilike = {name:`%${search}%`};
+    if(from)   q.gte   = {date:from};
+    if(to)     q.lte   = {date:to};
+    const data = await dbSelect('discounts', q);
+    if(data.length===0){ tbody.innerHTML='<tr><td colspan="6">'+emptyRow('🏷️','لا توجد خصومات')+'</td></tr>'; return; }
+    const total = data.reduce((s,r)=>s+Number(r.amount),0);
+    tbody.innerHTML = data.map((d,i)=>`
+      <tr>
+        <td class="t-m">${i+1}</td>
+        <td class="fw7">${d.name}</td>
+        <td>${fmtD(d.date)}</td>
+        <td class="t-a fw7">${fmt(d.amount)} ر.س</td>
+        <td class="t-m" style="font-size:12.5px">${d.reason||'—'}</td>
+        <td>
+          <div class="act-cell">
+            <button class="btn btn-ghost btn-xs" onclick="editDisc('${d.id}','${d.date}','${escQ(d.name)}',${d.amount},'${escQ(d.reason||'')}')">✏️</button>
+            <button class="btn btn-danger btn-xs" onclick="delDisc('${d.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('') +
+      `<tr class="tfoot"><td colspan="3" class="fw8">الإجمالي</td><td class="t-a fw8">${fmt(total)} ر.س</td><td colspan="2"></td></tr>`;
+  } catch(err){ tbody.innerHTML='<tr><td colspan="6">'+errRow(err)+'</td></tr>'; }
+}
+
+function openDiscModal(id,date,name,amount,reason) {
+  const isEdit = !!id;
+  openModal(
+    isEdit?'تعديل خصم':'إضافة خصم جديد',
+    `<div class="fg"><label>الاسم (موظف / عميل) *</label><input type="text" id="f_name" value="${name||''}" placeholder="الاسم"></div>
+     <div class="fg"><label>التاريخ *</label><input type="date" id="f_date" value="${date||today()}"></div>
+     <div class="fg"><label>المبلغ (ريال) *</label><input type="number" id="f_amount" value="${amount||''}" placeholder="0.00" min="0" step="0.01"></div>
+     <div class="fg"><label>السبب</label><textarea id="f_reason">${reason||''}</textarea></div>`,
+    isEdit?'تحديث':'إضافة',
+    async () => {
+      if(!validateFields(['f_name','f_date','f_amount'])) return;
+      const payload = {
+        name:   document.getElementById('f_name').value,
+        date:   document.getElementById('f_date').value,
+        amount: parseFloat(document.getElementById('f_amount').value),
+        reason: document.getElementById('f_reason').value,
+      };
+      try {
+        isEdit ? await dbUpdate('discounts',id,payload) : await dbInsert('discounts',payload);
+        toast(isEdit?'تم التحديث':'تم الإضافة');
+        closeModal(); loadDiscounts();
+      } catch(e){ toast('خطأ: '+e.message,'error'); }
+    }
+  );
+}
+const editDisc = openDiscModal;
+async function delDisc(id) {
+  if(!ask('هل أنت متأكد من حذف هذا الخصم؟')) return;
+  try { await dbDelete('discounts',id); toast('تم الحذف'); loadDiscounts(); }
+  catch(e){ toast('خطأ: '+e.message,'error'); }
+}
+
+/* ─────────────────────────────────────────────────
+   REPORTS
+   ───────────────────────────────────────────────── */
+function applyPreset() {
+  const p = document.getElementById('repPreset').value;
+  if(!p) return;
+  const t = today();
+  const d = new Date();
+  const from = {
+    today: t,
+    week: new Date(d.setDate(d.getDate()-d.getDay())).toISOString().split('T')[0],
+    month: monthStart(),
+    last30: new Date(Date.now()-30*864e5).toISOString().split('T')[0],
+    last90: new Date(Date.now()-90*864e5).toISOString().split('T')[0],
+  }[p]||t;
+  document.getElementById('repFrom').value = from;
+  document.getElementById('repTo').value   = today();
+}
+
+async function loadReports() {
+  const from = document.getElementById('repFrom').value;
+  const to   = document.getElementById('repTo').value;
+  if(!from||!to){ toast('يرجى تحديد نطاق التاريخ','warning'); return; }
+  if(from>to){ toast('تاريخ البداية يجب أن يكون قبل تاريخ النهاية','warning'); return; }
+  const cont = document.getElementById('repContent');
+  cont.innerHTML = '<div class="loading"><span class="spin">⟳</span> جاري إنشاء التقرير...</div>';
+  try {
+    const q = {gte:{date:from}, lte:{date:to}};
+    const [revenue,expenses,loans,discounts] = await Promise.all([
+      dbSelect('revenue',  q),
+      dbSelect('expenses', q),
+      dbSelect('loans',    q),
+      dbSelect('discounts',q),
+    ]);
+    reportCache = {revenue,expenses,loans,discounts,from,to};
+
+    const tRev   = revenue.reduce((s,r)=>s+Number(r.amount),0);
+    const tExp   = expenses.reduce((s,r)=>s+Number(r.amount),0);
+    const tLoan  = loans.reduce((s,r)=>s+Number(r.amount),0);
+    const tLRem  = loans.reduce((s,r)=>s+Number(r.amount)-Number(r.paid_amount||0),0);
+    const tDisc  = discounts.reduce((s,r)=>s+Number(r.amount),0);
+    const profit = tRev - tExp;
+
+    // expenses by category
+    const byCat = {};
+    expenses.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+Number(e.amount); });
+
+    cont.innerHTML = `
+      <div class="report-summary">
+        <div class="rs-item"><div class="rs-label">إجمالي الإيرادات</div><div class="rs-value g">${fmt(tRev)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${revenue.length} سجل</div></div>
+        <div class="rs-item"><div class="rs-label">إجمالي المصروفات</div><div class="rs-value r">${fmt(tExp)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${expenses.length} سجل</div></div>
+        <div class="rs-item"><div class="rs-label">صافي الربح</div><div class="rs-value ${profit>=0?'g':'r'}">${fmt(profit)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${profit>=0?'▲ ربح':'▼ خسارة'}</div></div>
+        <div class="rs-item"><div class="rs-label">إجمالي السلف</div><div class="rs-value a">${fmt(tLoan)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">متبقي: ${fmt(tLRem)}</div></div>
+        <div class="rs-item"><div class="rs-label">إجمالي الخصومات</div><div class="rs-value b">${fmt(tDisc)}</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${discounts.length} خصم</div></div>
+      </div>
+
+      ${Object.keys(byCat).length>0?`
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><span class="card-title">📊 توزيع المصروفات حسب الفئة</span></div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>الفئة</th><th>المبلغ</th><th>النسبة</th></tr></thead>
+            <tbody>${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>`
+              <tr>
+                <td>${catBadge(cat)}</td>
+                <td class="t-r fw7">${fmt(amt)} ر.س</td>
+                <td style="min-width:160px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="prog-wrap"><div class="prog-bar" style="width:${tExp?(amt/tExp*100).toFixed(1):0}%"></div></div>
+                    <span class="t-m" style="font-size:12px;min-width:36px">${tExp?(amt/tExp*100).toFixed(1):0}%</span>
+                  </div>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      `:''}
+
+      ${revenue.length>0?`
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><span class="card-title">💰 تفاصيل الإيرادات (${fmtD(from)} — ${fmtD(to)})</span></div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>#</th><th>التاريخ</th><th>المبلغ</th><th>الملاحظات</th></tr></thead>
+            <tbody>${revenue.map((r,i)=>`<tr><td class="t-m">${i+1}</td><td>${fmtD(r.date)}</td><td class="t-g fw7">${fmt(r.amount)} ر.س</td><td class="t-m">${r.notes||'—'}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}
+
+      ${expenses.length>0?`
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><span class="card-title">💸 تفاصيل المصروفات</span></div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>#</th><th>التاريخ</th><th>الفئة</th><th>المبلغ</th><th>الملاحظات</th></tr></thead>
+            <tbody>${expenses.map((e,i)=>`<tr><td class="t-m">${i+1}</td><td>${fmtD(e.date)}</td><td>${catBadge(e.category)}</td><td class="t-r fw7">${fmt(e.amount)} ر.س</td><td class="t-m">${e.notes||'—'}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}
+
+      ${loans.length>0?`
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><span class="card-title">🤝 السلف في هذه الفترة</span></div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>#</th><th>الموظف</th><th>التاريخ</th><th>المبلغ</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+            <tbody>${loans.map((l,i)=>{const st=loanStatus(l.amount,l.paid_amount);const rem=Number(l.amount)-Number(l.paid_amount||0);return`<tr><td class="t-m">${i+1}</td><td class="fw7">${l.employee_name}</td><td>${fmtD(l.date)}</td><td class="t-r fw7">${fmt(l.amount)} ر.س</td><td class="t-g fw7">${fmt(l.paid_amount||0)} ر.س</td><td class="${rem<=0?'t-g':'t-r'} fw7">${fmt(rem)} ر.س</td><td><span class="badge ${st.cls}">${st.label}</span></td></tr>`;}).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}
+
+      ${discounts.length>0?`
+      <div class="card">
+        <div class="card-head"><span class="card-title">🏷️ الخصومات في هذه الفترة</span></div>
+        <div class="card-body-0">
+          <table>
+            <thead><tr><th>#</th><th>الاسم</th><th>التاريخ</th><th>المبلغ</th><th>السبب</th></tr></thead>
+            <tbody>${discounts.map((d,i)=>`<tr><td class="t-m">${i+1}</td><td class="fw7">${d.name}</td><td>${fmtD(d.date)}</td><td class="t-a fw7">${fmt(d.amount)} ر.س</td><td class="t-m">${d.reason||'—'}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}
+    `;
+  } catch(err){
+    cont.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${err.message}</p></div>`;
+  }
+}
+
+/* ─────────────────────────────────────────────────
+   CSV EXPORT
+   ───────────────────────────────────────────────── */
+function exportCSV() {
+  if(!reportCache){ toast('أنشئ تقريراً أولاً','warning'); return; }
+  const {revenue,expenses,loans,discounts,from,to} = reportCache;
+  const bom = '\uFEFF';
+  let csv = bom;
+
+  const row = (...cols) => cols.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',') + '\n';
+
+  csv += 'قسم الإيرادات\n';
+  csv += row('التاريخ','المبلغ','الملاحظات');
+  revenue.forEach(r=>{ csv+=row(r.date,r.amount,r.notes); });
+  csv += row('الإجمالي',revenue.reduce((s,r)=>s+Number(r.amount),0),'');
+
+  csv += '\nقسم المصروفات\n';
+  csv += row('التاريخ','الفئة','المبلغ','الملاحظات');
+  expenses.forEach(e=>{ csv+=row(e.date,e.category,e.amount,e.notes); });
+  csv += row('الإجمالي','',expenses.reduce((s,r)=>s+Number(r.amount),0),'');
+
+  csv += '\nقسم السلف\n';
+  csv += row('اسم الموظف','التاريخ','المبلغ الكلي','المدفوع','المتبقي','الملاحظات');
+  loans.forEach(l=>{ const rem=Number(l.amount)-Number(l.paid_amount||0); csv+=row(l.employee_name,l.date,l.amount,l.paid_amount||0,rem,l.notes); });
+
+  csv += '\nقسم الخصومات\n';
+  csv += row('الاسم','التاريخ','المبلغ','السبب');
+  discounts.forEach(d=>{ csv+=row(d.name,d.date,d.amount,d.reason); });
+
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'),{href:url, download:`تقرير_بيت_المندي_${from}_${to}.csv`});
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('تم تصدير التقرير بنجاح');
+}
+
+/* ─────────────────────────────────────────────────
+   HELPERS (HTML snippets)
+   ───────────────────────────────────────────────── */
+function emptyRow(icon, msg) {
+  return `<div class="empty"><div class="empty-icon">${icon}</div><p>${msg}</p></div>`;
+}
+function errRow(err) {
+  return `<div class="empty"><div class="empty-icon">⚠️</div><p>خطأ: ${err.message||err}</p></div>`;
+}
+
+</script>
+</body>
+</html>
